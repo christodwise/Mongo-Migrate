@@ -764,11 +764,11 @@
 
                         <div id="sourceStats" class="stat-grid" style="display: none;">
                             <div class="stat-box source-stat">
-                                <span class="stat-label" id="sourceStatLabel1">Collections</span>
+                                <span class="stat-label">Total DBs</span>
                                 <span class="stat-value" id="sourceStatVal1">--</span>
                             </div>
                             <div class="stat-box source-stat">
-                                <span class="stat-label">Objects</span>
+                                <span class="stat-label">Total Collections</span>
                                 <span class="stat-value" id="sourceStatVal2">--</span>
                             </div>
                         </div>
@@ -786,15 +786,6 @@
                             <div class="selector-info">
                                 <label>Target</label>
                                 <h3>Destination Node</h3>
-                            </div>
-                            <div style="margin-left: auto; text-align: right;">
-                                <span
-                                    style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Full
-                                    Sync</span>
-                                <label class="switch">
-                                    <input type="checkbox" id="instanceToggle" onchange="toggleInstanceMode()">
-                                    <span class="slider"></span>
-                                </label>
                             </div>
                         </div>
 
@@ -955,7 +946,6 @@
         let selectedSource = null;
         let selectedTarget = null;
         let allConnections = {};
-        let isInstanceMode = false;
         let rawConnections = [];
 
         async function fetchConnections() {
@@ -973,14 +963,6 @@
             populateDropdowns();
         }
 
-        function toggleInstanceMode() {
-            isInstanceMode = document.getElementById('instanceToggle').checked;
-            const label = isInstanceMode ? "Total DBs" : "Collections";
-            if (document.getElementById('sourceStatLabel1')) {
-                document.getElementById('sourceStatLabel1').textContent = label;
-            }
-            updateStats();
-        }
 
         function populateDropdowns() {
             const sourceSelect = document.getElementById('sourceSelect');
@@ -1043,15 +1025,13 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        uri: selectedSource.uri,
-                        dbname: selectedSource.dbname,
-                        is_instance: isInstanceMode
+                        uri: selectedSource.uri
                     })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    val1.textContent = isInstanceMode ? data.stats.dbCount : data.stats.collections;
-                    val2.textContent = data.stats.objects.toLocaleString();
+                    val1.textContent = data.stats.dbCount;
+                    val2.textContent = data.stats.collections.toLocaleString();
                 } else {
                     val1.textContent = "ERR";
                     val2.textContent = "OFFLINE";
@@ -1069,16 +1049,11 @@
         function openConfirmModal() {
             document.getElementById('confirmSource').textContent = selectedSource.name;
             document.getElementById('confirmTarget').textContent = selectedTarget.name;
-
-            if (isInstanceMode) {
-                document.getElementById('confirmMode').textContent = "FULL SYNC (ALL DATABASES)";
-                document.getElementById('confirmLabelText').innerHTML = "Type <strong style='color: var(--error)'>FULL_SYNC</strong> to confirm:";
-                document.getElementById('typeConfirm').placeholder = "FULL_SYNC";
-            } else {
-                document.getElementById('confirmMode').textContent = `DB SYNC (${selectedTarget.dbname})`;
-                document.getElementById('confirmLabelText').innerHTML = `Type database name <strong style='color: var(--primary)'>${selectedTarget.dbname}</strong>:`;
-                document.getElementById('typeConfirm').placeholder = selectedTarget.dbname;
-            }
+            
+            document.getElementById('confirmMode').textContent = "FULL INSTANCE SYNC";
+            document.getElementById('confirmLabelText').innerHTML = "Type <strong style='color: var(--error)'>FULL_SYNC</strong> to confirm:";
+            document.getElementById('typeConfirm').placeholder = "FULL_SYNC";
+            
             document.getElementById('typeConfirm').value = '';
             document.getElementById('checkConfirm').checked = false;
             document.getElementById('finalStartBtn').disabled = true;
@@ -1088,8 +1063,7 @@
         function validateFinalConfirm() {
             const typed = document.getElementById('typeConfirm').value;
             const checked = document.getElementById('checkConfirm').checked;
-            const keyword = isInstanceMode ? "FULL_SYNC" : selectedTarget.dbname;
-            document.getElementById('finalStartBtn').disabled = !(typed === keyword && checked);
+            document.getElementById('finalStartBtn').disabled = !(typed === "FULL_SYNC" && checked);
         }
 
         async function startMigration() {
@@ -1100,8 +1074,7 @@
             addLogLine("Initializing synchronization protocol...", "info");
             socket.emit('start_migration', {
                 source: selectedSource,
-                target: selectedTarget,
-                is_instance: isInstanceMode
+                target: selectedTarget
             });
         }
 
