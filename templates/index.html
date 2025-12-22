@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MongoMigrate | High-Speed Database Migration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        :root {
+            --primary: #00b09b;
+            --secondary: #96c93d;
+            --tertiary: #f9f047;
+            --bg: #060d0a;
+            /* Darker, slightly green-tinted background */
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --text: #ffffff;
+            --text-dim: #94a3b8;
+            --accent: #00ff88;
+            --success: #00ff88;
+            --error: #fb7185;
+            --warning: #fbbf24;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            background: radial-gradient(circle at top right, #0a1f1a, var(--bg));
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0, 255, 136, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            height: 100vh;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            background: linear-gradient(45deg, var(--accent), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(45deg, var(--accent), var(--secondary));
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+            flex-grow: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-label {
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 1.2rem;
+        }
+
+        .connection-list {
+            list-style: none;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .connection-item {
+            padding: 1rem;
+            border-radius: 14px;
+            margin-bottom: 0.8rem;
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .connection-item:hover {
+            border-color: var(--accent);
+            background: rgba(0, 255, 136, 0.05);
+            transform: translateX(5px);
+        }
+
+        .connection-info h4 {
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .connection-info p {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .env-badge {
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main {
+            flex-grow: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+        }
+
+        .btn {
+            padding: 0.9rem 1.8rem;
+            border-radius: 14px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 4px 20px rgba(0, 176, 155, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 176, 155, 0.5);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid rgba(0, 255, 136, 0.2);
+            color: white;
+        }
+
+        .btn-outline:hover {
+            background: rgba(0, 255, 136, 0.05);
+            border-color: var(--accent);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 2rem;
+            transition: 0.3s;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.6rem;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.9rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            outline: none;
+            transition: 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.1);
+        }
+
+        .slot {
+            padding: 1.8rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 18px;
+            border: 1.5px dashed rgba(255, 255, 255, 0.1);
+            position: relative;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .slot.filled {
+            border-style: solid;
+            border-color: var(--accent);
+            background: rgba(0, 255, 136, 0.03);
+        }
+
+        .slot:hover:not(.filled) {
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .slot-header {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+        }
+
+        .stat-box span {
+            display: block;
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            margin-bottom: 4px;
+        }
+
+        .logs-container {
+            height: 450px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 18px;
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: #a5b4fc;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            line-height: 1.6;
+        }
+
+        .log-line {
+            margin-bottom: 6px;
+            border-left: 3px solid transparent;
+            padding-left: 12px;
+        }
+
+        .log-line.info {
+            color: #60a5fa;
+        }
+
+        .log-line.phase {
+            color: var(--secondary);
+            font-weight: bold;
+            border-left-color: var(--accent);
+        }
+
+        .log-line.success {
+            color: var(--success);
+        }
+
+        .log-line.error {
+            color: var(--error);
+            border-left-color: var(--error);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal {
+            background: #0d1a15;
+            border: 1px solid rgba(0, 255, 136, 0.1);
+            width: 500px;
+            padding: 2.5rem;
+            border-radius: 28px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .danger-box {
+            background: rgba(251, 113, 133, 0.05);
+            border: 1px solid rgba(251, 113, 133, 0.2);
+            border-radius: 14px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            color: var(--error);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .confirm-group {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .confirm-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+        }
+
+        .confirm-check input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .anim-pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon"></div>
+            MongoMigrate
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-label">Saved Connections</div>
+            <div id="connectionList" class="connection-list"></div>
+        </div>
+
+        <button class="btn btn-outline" style="width: 100%; justify-content: center;"
+            onclick="openModal('connectionModal')">
+            <span>+</span> Add Connection
+        </button>
+    </div>
+
+    <div class="main">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+            <div>
+                <h1 style="font-size: 2.5rem; font-weight: 700;">Migration Studio</h1>
+                <p style="color: var(--text-dim); margin-top: 5px;">Secure architecture for high-speed MongoDB
+                    transfers.</p>
+            </div>
+            <div id="status-badge" class="env-badge"
+                style="display: none; padding: 10px 20px; border-radius: 12px; background: rgba(251, 113, 133, 0.1); color: var(--error);">
+                LIVE MIGRATION ACTIVE</div>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="migration-config">
+                <div class="card">
+                    <h3 style="margin-bottom: 2rem; font-weight: 600;">Stream Manager</h3>
+
+                    <div class="migration-slots" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div id="sourceSlot" class="slot" onclick="selectSlot('source')">
+                            <div class="slot-header">Source Context</div>
+                            <div class="slot-content">
+                                <p style="color: var(--text-dim)">Click to mount source...</p>
+                            </div>
+                        </div>
+
+                        <div
+                            style="text-align: center; color: var(--accent); font-size: 1.2rem; filter: drop-shadow(0 0 5px var(--accent));">
+                            ▼</div>
+
+                        <div id="targetSlot" class="slot" onclick="selectSlot('target')">
+                            <div class="slot-header">Target Destination</div>
+                            <div class="slot-content">
+                                <p style="color: var(--text-dim)">Click to mount target...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 2.5rem;">
+                        <button id="preStartBtn" class="btn btn-primary" style="width: 100%; justify-content: center;"
+                            onclick="openConfirmModal()" disabled>
+                            Initialize Migration
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="live-logs">
+                <div class="card" style="height: 100%; display: flex; flex-direction: column; padding: 1.5rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+                        <h3
+                            style="font-size: 1rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;">
+                            Output Stream</h3>
+                        <button class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.75rem"
+                            onclick="clearLogs()">Flush Logs</button>
+                    </div>
+                    <div id="logs" class="logs-container">
+                        <div class="log-line">System idle. Ready for context mounting.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connection Modal -->
+    <div id="connectionModal" class="modal-overlay">
+        <div class="modal">
+            <h2 style="margin-bottom: 1.8rem; font-weight: 600;">Mount Storage Context</h2>
+            <form id="connectionForm" onsubmit="saveConnection(event)">
+                <div class="form-group">
+                    <label>Label</label>
+                    <input type="text" id="connName" placeholder="e.g. AWS Primary" required>
+                </div>
+                <div class="form-group">
+                    <label>Environment</label>
+                    <select id="connEnv">
+                        <option value="Production">Production</option>
+                        <option value="Staging">Staging</option>
+                        <option value="Development" selected>Development</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Connection URI</label>
+                    <input type="password" id="connUri" placeholder="mongodb+srv://..." required>
+                </div>
+                <div class="form-group">
+                    <label>Target Database</label>
+                    <input type="text" id="connDb" placeholder="db_name" required>
+                </div>
+                <div style="display: flex; gap: 15px; margin-top: 2.5rem;">
+                    <button type="button" class="btn btn-outline" style="flex: 1; justify-content: center;"
+                        onclick="closeModal('connectionModal')">Abort</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">Add
+                        Context</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Migration Warning Modal -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal">
+            <h2 style="margin-bottom: 1rem; color: var(--error);">🚨 Critical Confirmation</h2>
+            <div class="danger-box">
+                <strong>WARNING:</strong> This operation will perform a <strong>total drop</strong> of the target
+                collections in the specified database before restoration. All existing data in the target will be
+                permanently lost.
+            </div>
+
+            <div id="confirmDetails" style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 1.5rem;">
+                Target: <span id="confirmDbName" style="color: white; font-weight: bold;"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Type target database name to confirm:</label>
+                <input type="text" id="typeConfirm" placeholder="Type here..." oninput="validateFinalConfirm()">
+            </div>
+
+            <label class="confirm-check">
+                <input type="checkbox" id="checkConfirm" onchange="validateFinalConfirm()">
+                <span>I understand the risks and want to proceed.</span>
+            </label>
+
+            <div style="display: flex; gap: 15px; margin-top: 2.5rem;">
+                <button type="button" class="btn btn-outline" style="flex: 1; justify-content: center;"
+                    onclick="closeModal('confirmModal')">Go Back</button>
+                <button id="finalStartBtn" class="btn btn-primary"
+                    style="flex: 1; justify-content: center; background: linear-gradient(45deg, #fb7185, #e11d48);"
+                    onclick="startMigration()" disabled>
+                    ⚠️ Start Migration
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let currentSlot = null;
+        let selectedSource = null;
+        let selectedTarget = null;
+        let allConnections = {};
+
+        async function fetchConnections() {
+            const res = await fetch('/api/connections');
+            allConnections = await res.json();
+            renderConnectionList();
+        }
+
+        function renderConnectionList() {
+            const list = document.getElementById('connectionList');
+            list.innerHTML = '';
+            
+            for (const [env, conns] of Object.entries(allConnections)) {
+                conns.forEach(conn => {
+                    const item = document.createElement('div');
+                    item.className = 'connection-item';
+                    item.onclick = (e) => { e.stopPropagation(); useConnection(conn); };
+                    item.innerHTML = `
+                        <div class="connection-info">
+                            <h4>${conn.name}</h4>
+                            <p>${conn.dbname}</p>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px">
+                            <span class="env-badge">${env}</span>
+                            <span style="color: #fb7185; cursor: pointer; font-size: 1.4rem; line-height: 1;" onclick="deleteConnection(event, ${conn.id})">×</span>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+            }
+        }
+
+        function useConnection(conn) {
+            if (!currentSlot) { alert("Select a slot (Source or Target) first."); return; }
+            if (currentSlot === 'source') { selectedSource = conn; updateSlotUI('source', conn); } 
+            else { selectedTarget = conn; updateSlotUI('target', conn); }
+            validateInputs();
+        }
+
+        async function updateSlotUI(type, conn) {
+            const slot = document.getElementById(`${type}Slot`);
+            slot.classList.add('filled');
+            slot.querySelector('.slot-content').innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong style="color: white; font-size: 1rem;">${conn.name}</strong>
+                    <div id="${type}-status" class="anim-pulse" style="font-size: 0.65rem; color: var(--accent); letter-spacing: 1px;">SYNCING...</div>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-box"><span>Collections</span> --</div>
+                    <div class="stat-box"><span>Objects</span> --</div>
+                </div>
+            `;
+
+            try {
+                const res = await fetch('/api/db-stats', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ uri: conn.uri, dbname: conn.dbname })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    slot.querySelector('.stats-row').innerHTML = `
+                        <div class="stat-box"><span>Collections</span> ${data.stats.collections}</div>
+                        <div class="stat-box"><span>Objects</span> ${data.stats.objects}</div>
+                    `;
+                    const status = document.getElementById(`${type}-status`);
+                    status.textContent = "MOUNTED";
+                    status.classList.remove('anim-pulse');
+                    status.style.color = "var(--success)";
+                } else {
+                    document.getElementById(`${type}-status`).textContent = "ERROR";
+                    document.getElementById(`${type}-status`).style.color = "var(--error)";
+                }
+            } catch (e) {
+                document.getElementById(`${type}-status`).textContent = "OFFLINE";
+                document.getElementById(`${type}-status`).style.color = "var(--error)";
+            }
+        }
+
+        function selectSlot(type) {
+            currentSlot = type;
+            document.querySelectorAll('.slot').forEach(s => s.style.borderColor = 'rgba(255,255,255,0.1)');
+            document.getElementById(`${type}Slot`).style.borderColor = 'var(--accent)';
+        }
+
+        function validateInputs() {
+            document.getElementById('preStartBtn').disabled = !(selectedSource && selectedTarget);
+        }
+
+        function openConfirmModal() {
+            if (selectedSource.uri === selectedTarget.uri && selectedSource.dbname === selectedTarget.dbname) {
+                alert("Source and target cannot be the same context!"); return;
+            }
+            document.getElementById('confirmDbName').textContent = selectedTarget.dbname;
+            document.getElementById('typeConfirm').value = '';
+            document.getElementById('checkConfirm').checked = false;
+            document.getElementById('finalStartBtn').disabled = true;
+            openModal('confirmModal');
+        }
+
+        function validateFinalConfirm() {
+            const typed = document.getElementById('typeConfirm').value;
+            const checked = document.getElementById('checkConfirm').checked;
+            document.getElementById('finalStartBtn').disabled = !(typed === selectedTarget.dbname && checked);
+        }
+
+        async function startMigration() {
+            closeModal('confirmModal');
+            clearLogs();
+            addLogLine("Initializing secure channel and pre-flight protocol...", "info");
+            
+            const preRes = await fetch('/api/preflight', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ source: selectedSource, target: selectedTarget })
+            });
+            const { checks } = await preRes.json();
+            
+            let failed = false;
+            checks.forEach(check => {
+                addLogLine(`${check.status === 'pass' ? '✓' : '✗'} ${check.msg}`, check.status === 'pass' ? 'success' : 'error');
+                if (check.status === 'fail') failed = true;
+            });
+
+            if (failed) { addLogLine("Protocol halted: Pre-flight failure detected.", "error"); return; }
+
+            document.getElementById('preStartBtn').disabled = true;
+            document.getElementById('status-badge').style.display = 'block';
+            
+            socket.emit('start_migration', { source: selectedSource, target: selectedTarget });
+        }
+
+        socket.on('migration_log', (data) => {
+            let msg = data.message; let type = "info";
+            if (msg.startsWith("PHASE:")) { type = "phase"; msg = msg.split("|")[1]; } 
+            else if (msg.startsWith("ERROR:")) { type = "error"; } 
+            else if (msg.includes("successfully")) { type = "success"; }
+            addLogLine(msg, type);
+        });
+
+        socket.on('migration_complete', (data) => {
+            document.getElementById('preStartBtn').disabled = false;
+            document.getElementById('status-badge').style.display = 'none';
+            if (data.success) { addLogLine("🏁 Mission Accomplished: Migration success.", "success"); } 
+            else { addLogLine("💥 System Alert: Migration failure - " + data.message, "error"); }
+        });
+
+        function addLogLine(text, type) {
+            const logs = document.getElementById('logs');
+            const line = document.createElement('div');
+            line.className = `log-line ${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+            logs.appendChild(line);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function clearLogs() { document.getElementById('logs').innerHTML = ''; }
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        async function saveConnection(e) {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('connName').value,
+                environment: document.getElementById('connEnv').value,
+                uri: document.getElementById('connUri').value,
+                dbname: document.getElementById('connDb').value
+            };
+            const res = await fetch('/api/connections', {
+                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)
+            });
+            if ((await res.json()).success) { fetchConnections(); closeModal('connectionModal'); document.getElementById('connectionForm').reset(); } 
+            else { alert("Context label already exists."); }
+        }
+
+        async function deleteConnection(e, id) {
+            e.stopPropagation();
+            if (!confirm("De-mount this context?")) return;
+            await fetch(`/api/connections/${id}`, { method: 'DELETE' });
+            fetchConnections();
+        }
+
+        fetchConnections();
+    </script>
+</body>
+
+</html>
+
+</body>
+
+</html>
