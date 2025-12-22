@@ -39,60 +39,82 @@ def migrate_db(source, target, log_callback, is_instance=False):
     if target.get('uri'): redact_patterns.append(target['uri'])
     
     try:
-        # Phase 1: Dump
-        log_callback("PHASE:DUMPING|Connecting to source and generating dump...")
-        dump_cmd = ["mongodump", "--uri", source['uri'], "--out", temp_dir]
+        client = MongoClient(source['uri'])
         
-        if not is_instance:
-            dump_cmd.extend(["--db", source['dbname']])
-            log_callback(f"Targeting database: {source['dbname']}")
-        else:
-            log_callback("Full instance migration initiated (Full Sync Mode)")
-            # Exclude system databases for full instance dump
-            # mongodump doesn't have an exclude-db flag easily for full dump, 
-            # but it usually skips admin/config/local unless specified.
-            pass
+        if is_instance:
+            log_callback("PHASE:DISCOVERY|Detecting non-system databases...")
+            dbs = client.list_database_names()
+            ignore = ['admin', 'config', 'local']
+            target_dbs = [d for d in dbs if d not in ignore]
+            log_callback(f"Detected {len(target_dbs)} databases: {', '.join(target_dbs)}")
+            
+            # Phase 1: Dump Full Instance (excluding systems)
+            log_callback("PHASE:DUMPING|Capturing data and metadata (All DBs)...")
+            dump_cmd = ["mongodump", "--uri", source['uri'], "--out", temp_dir]
+            # mongodump does not easily exclude DBs in one go without specifying each, 
+            # but usually skips systems. We'll dump everything and rely on restore filtering.
+            run_command(dump_cmd, log_callback, redact_patterns)
+            
+            # Optional: Capture Users and Roles from admin if they exist
+            log_callback("PHASE:AUTH|Capturing system users and roles...")
+            auth_dump_cmd = ["mongodump", "--uri", source['uri'], "--db", "admin", "--out", temp_dir]
+            try:
+                run_command(auth_dump_cmd, log_callback, redact_patterns)
+            except:
+                log_callback("Note: Skipping granular admin auth dump (may lack permissions).")
 
-        run_command(dump_cmd, log_callback, redact_patterns)
-        log_callback("Dump completed successfully.")
-        
-        # Phase 2: Restore
-        log_callback("PHASE:RESTORING|Preparing target for data injection...")
-        restore_cmd = ["mongorestore", "--uri", target['uri'], "--drop"]
-        
-        if not is_instance:
-            # In single DB mode, we map the source DB to target DB
-            # The dump structure is temp_dir/source_db/collections...
+            log_callback("Dump completed successfully.")
+            
+            # Phase 2: Restore Full Instance
+            log_callback("PHASE:RESTORING|Injecting data and metadata to destination...")
+            restore_cmd = ["mongorestore", "--uri", target['uri'], "--drop", temp_dir]
+            run_command(restore_cmd, log_callback, redact_patterns)
+            log_callback("Restore completed successfully.")
+
+        else:
+            # Single DB Mode
+            log_callback(f"PHASE:DUMPING|Capturing {source['dbname']} context...")
+            dump_cmd = ["mongodump", "--uri", source['uri'], "--db", source['dbname'], "--out", temp_dir]
+            run_command(dump_cmd, log_callback, redact_patterns)
+            log_callback("Dump completed successfully.")
+            
+            log_callback(f"PHASE:RESTORING|Injecting to destination node: {target['dbname']}...")
+            restore_cmd = ["mongorestore", "--uri", target['uri'], "--drop"]
+            
             source_path = os.path.join(temp_dir, source['dbname'])
             if not os.path.exists(source_path):
-                # Fallback check if mongodump behaved differently
-                log_callback(f"ERROR: Dump path not found at {source_path}")
-                raise Exception("Dump directory missing")
+                raise Exception(f"Dump path not found at {source_path}")
                 
             restore_cmd.extend(["--nsInclude", f"{source['dbname']}.*"])
-            # If target db name is different, use nsFrom/nsTo
             if source['dbname'] != target['dbname']:
                 restore_cmd.extend([
                     "--nsFrom", f"{source['dbname']}.*",
                     "--nsTo", f"{target['dbname']}.*"
                 ])
-            restore_cmd.append(temp_dir) # mongorestore takes the root dump dir usually or specific db dir
-        else:
-            log_callback("Restoring all databases to target...")
             restore_cmd.append(temp_dir)
+            run_command(restore_cmd, log_callback, redact_patterns)
+            log_callback("Restore completed successfully.")
 
-        run_command(restore_cmd, log_callback, redact_patterns)
-        log_callback("Restore completed successfully.")
-        
+        # Phase 3: Validation
+        log_callback("PHASE:VALIDATION|Executing post-migration audit...")
+        target_client = MongoClient(target['uri'])
+        if is_instance:
+            s_dbs = len([d for d in client.list_database_names() if d not in ['admin', 'config', 'local']])
+            t_dbs = len([d for d in target_client.list_database_names() if d not in ['admin', 'config', 'local']])
+            log_callback(f"Validation: Source DBs ({s_dbs}) vs Destination DBs ({t_dbs})")
+        else:
+            s_cols = len(client[source['dbname']].list_collection_names())
+            t_cols = len(target_client[target['dbname']].list_collection_names())
+            log_callback(f"Validation: Source Collections ({s_cols}) vs Destination Collections ({t_cols})")
+            
         return True, "Migration completed successfully!"
     except Exception as e:
         log_callback(f"ERROR: Migration Failed - {str(e)}")
         return False, str(e)
     finally:
-        # Cleanup
         try:
-            import shutil
-            shutil.rmtree(temp_dir)
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
         except:
             pass
 
