@@ -609,6 +609,11 @@
                     <label>Default DB</label>
                     <input type="text" id="connDb" placeholder="app_db" required>
                 </div>
+                <div style="margin-top: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                    <button type="button" class="btn btn-outline" style="padding: 0.6rem 1rem; font-size: 0.75rem;"
+                        onclick="testConnectionUI()">Test Connection</button>
+                    <div id="testStatus" style="font-size: 0.75rem; font-weight: 700; display: none;"></div>
+                </div>
                 <div style="display: flex; gap: 12px; margin-top: 2rem;">
                     <button type="button" class="btn btn-outline" style="flex: 1; justify-content: center;"
                         onclick="closeModal('connectionModal')">Cancel</button>
@@ -813,6 +818,35 @@
         function clearLogs() { document.getElementById('logs').innerHTML = ''; }
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        async function testConnectionUI() {
+            const uri = document.getElementById('connUri').value;
+            const statusEl = document.getElementById('testStatus');
+            if (!uri) { alert("Please enter a URI first."); return; }
+            
+            statusEl.style.display = 'block';
+            statusEl.style.color = 'var(--text-dim)';
+            statusEl.textContent = "Testing...";
+
+            try {
+                const res = await fetch('/api/test-connection', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ uri })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    statusEl.style.color = 'var(--success)';
+                    statusEl.textContent = "Connection Valid: " + data.message;
+                } else {
+                    statusEl.style.color = 'var(--error)';
+                    statusEl.textContent = "Failed: " + data.message;
+                }
+            } catch (e) {
+                statusEl.style.color = 'var(--error)';
+                statusEl.textContent = "Request failed.";
+            }
+        }
 
         async function saveConnection(e) {
             e.preventDefault();
