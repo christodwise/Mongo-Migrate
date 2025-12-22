@@ -1,9 +1,10 @@
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_socketio import SocketIO, emit
 import storage
 import migration
-import threading
-import os
 import secrets
 from functools import wraps
 import hashlib
@@ -113,23 +114,34 @@ def handle_migration(data):
     target = data['target']
     is_instance = data.get('is_instance', False)
     
+    active_migrations[migration_id] = {
+        'source': source['name'],
+        'target': target['name'],
+        'status': 'running'
+    }
+
     def log_callback(message):
         socketio.emit('migration_log', {'id': migration_id, 'message': message})
-    
-    def run_migration():
-        success, message = migration.migrate_db(source, target, log_callback, is_instance)
-        socketio.emit('migration_complete', {
-            'id': migration_id, 
-            'success': success, 
-            'message': message
-        })
-        if migration_id in active_migrations:
-            del active_migrations[migration_id]
 
-    thread = threading.Thread(target=run_migration)
-    active_migrations[migration_id] = thread
-    thread.start()
-    
+    def run_migration():
+        try:
+            success, message = migration.migrate_db(source, target, log_callback, is_instance)
+            socketio.emit('migration_complete', {
+                'id': migration_id, 
+                'success': success, 
+                'message': message
+            })
+        except Exception as e:
+            socketio.emit('migration_complete', {
+                'id': migration_id, 
+                'success': False, 
+                'message': str(e)
+            })
+        finally:
+            if migration_id in active_migrations:
+                del active_migrations[migration_id]
+
+    socketio.start_background_task(target=run_migration)
     emit('migration_started', {'id': migration_id})
 
 if __name__ == '__main__':

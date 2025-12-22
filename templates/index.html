@@ -634,8 +634,20 @@
             </div>
 
             <div id="confirmDetails"
-                style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1.5rem; background: #f8fafc; padding: 1rem; border-radius: 12px; border: 1px solid var(--border);">
-                Scope: <span id="confirmDbName" style="color: #0f172a; font-weight: 800;"></span>
+                style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1.5rem; background: #f8fafc; padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Source:</span>
+                    <span id="confirmSource" style="color: #0f172a; font-weight: 800;"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Target:</span>
+                    <span id="confirmTarget" style="color: #0f172a; font-weight: 800;"></span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px dashed var(--border);">
+                    <span>DB/Scope:</span>
+                    <span id="confirmDbName" style="color: #0f172a; font-weight: 800;"></span>
+                </div>
             </div>
 
             <div class="form-group">
@@ -756,6 +768,9 @@
         }
 
         function openConfirmModal() {
+            document.getElementById('confirmSource').textContent = selectedSource.name;
+            document.getElementById('confirmTarget').textContent = selectedTarget.name;
+            
             if (isInstanceMode) {
                 document.getElementById('confirmWarningTitle').textContent = "INSTANCE MIRROR:";
                 document.getElementById('confirmDbName').textContent = "ALL DATABASES";
