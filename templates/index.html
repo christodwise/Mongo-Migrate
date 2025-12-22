@@ -10,19 +10,42 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
     <style>
         :root {
+            /* Gemini Light Theme - Premium Palette */
             --primary: #10b981;
-            --primary-light: #ecfdf5;
+            --primary-rgb: 16, 185, 129;
+            --primary-light: rgba(16, 185, 129, 0.06);
+            --primary-dim: rgba(16, 185, 129, 0.12);
             --secondary: #059669;
+
+            /* Light Mode Core */
             --bg: #f8fafc;
+            /* Slate 50 */
             --sidebar-bg: #ffffff;
             --card-bg: #ffffff;
+            --card-border: #e2e8f0;
+            /* Slate 200 */
+
+            /* Typography & UI Colors */
             --text: #0f172a;
-            --text-dim: #64748b;
-            --accent: #10b981;
+            /* Slate 900 */
+            --text-dim: #475569;
+            /* Slate 600 */
+            --text-muted: #94a3b8;
+            /* Slate 400 */
+
+            /* Functional Colors */
             --success: #10b981;
             --error: #ef4444;
             --warning: #f59e0b;
-            --border: #e2e8f0;
+            --info: #3b82f6;
+
+            /* Layout & Shadows */
+            --border-radius: 20px;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --sidebar-width: 280px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -38,119 +61,210 @@
             height: 100vh;
             display: flex;
             overflow: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Sidebar */
+        /* App Shell Layout */
+        .app-shell {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        /* Sidebar Styling */
         .sidebar {
-            width: 280px;
+            width: var(--sidebar-width);
             background: var(--sidebar-bg);
-            border-right: 1px solid var(--border);
+            border-right: 1px solid var(--card-border);
             display: flex;
             flex-direction: column;
-            padding: 1.5rem;
+            padding: 2rem 1.5rem;
             height: 100vh;
-            box-shadow: 4px 0 20px rgba(15, 23, 42, 0.02);
-            z-index: 10;
+            z-index: 50;
+            flex-shrink: 0;
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.02);
         }
 
         .logo {
-            font-size: 1.4rem;
-            font-weight: 800;
-            margin-bottom: 2rem;
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 2.5rem;
             color: var(--primary);
             display: flex;
             align-items: center;
+            gap: 12px;
             letter-spacing: -0.5px;
+        }
+
+        .logo-box {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
         }
 
         .nav-section {
             margin-bottom: 2rem;
             flex-grow: 1;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         .nav-label {
-            color: var(--text-dim);
-            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            margin-bottom: 1rem;
-            font-weight: 700;
-            opacity: 0.8;
+            margin-bottom: 1.5rem;
+            font-weight: 800;
         }
 
         .connection-list {
             list-style: none;
             overflow-y: auto;
-            padding-right: 4px;
-            flex-grow: 1;
+            padding-right: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        /* Custom Scrollbar - Light Mode */
+        .connection-list::-webkit-scrollbar,
+        .logs-container::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .connection-list::-webkit-scrollbar-thumb,
+        .logs-container::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
         }
 
         .connection-item {
-            padding: 0.9rem;
-            border-radius: 12px;
-            margin-bottom: 0.6rem;
-            background: #ffffff;
+            padding: 1rem;
+            border-radius: 14px;
+            background: #fff;
             cursor: pointer;
-            transition: 0.2s;
+            transition: var(--transition);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid var(--border);
+            border: 1px solid var(--card-border);
         }
 
         .connection-item:hover {
             border-color: var(--primary);
             background: var(--primary-light);
-            transform: translateY(-1px);
+            transform: translateX(4px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .connection-item.active {
+            border-color: var(--primary);
+            background: var(--primary-dim);
+            box-shadow: var(--shadow-md);
         }
 
         .connection-info h4 {
             font-size: 0.85rem;
-            padding-right: 5px;
             font-weight: 700;
             color: var(--text);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            margin-bottom: 2px;
         }
 
         .connection-info p {
             font-size: 0.7rem;
             color: var(--text-dim);
+            font-weight: 600;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex-grow: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            background: var(--bg);
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .content-header h1 {
+            font-size: 2.25rem;
+            font-weight: 900;
+            letter-spacing: -1.2px;
+            color: #0f172a;
+        }
+
+        /* Layout Grid */
+        .studio-grid {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 2rem;
+            flex-grow: 1;
+            min-height: 0;
+        }
+
+        /* Reusable Card Component */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #1e293b;
+            letter-spacing: -0.5px;
+        }
+
+        .card-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 4px;
             font-weight: 500;
         }
 
-        .env-badge {
-            font-size: 0.55rem;
-            padding: 3px 8px;
-            border-radius: 6px;
-            background: #f1f5f9;
-            color: #475569;
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-
-        /* Main Content */
-        .main {
-            flex-grow: 1;
-            padding: 2.5rem;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
+        /* Buttons */
         .btn {
-            padding: 0.8rem 1.5rem;
+            padding: 0.75rem 1.25rem;
             border-radius: 12px;
             border: none;
             cursor: pointer;
             font-weight: 700;
-            transition: 0.2s;
+            transition: var(--transition);
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             font-size: 0.85rem;
         }
@@ -158,85 +272,150 @@
         .btn-primary {
             background: var(--primary);
             color: white;
-            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+            box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.25);
         }
 
         .btn-primary:hover:not(:disabled) {
             background: var(--secondary);
-            transform: translateY(-1px);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(var(--primary-rgb), 0.35);
         }
 
         .btn-outline {
             background: white;
-            border: 1.5px solid var(--border);
-            color: var(--text);
+            border: 1.5px solid var(--card-border);
+            color: var(--text-dim);
         }
 
         .btn-outline:hover {
-            background: #f8fafc;
             border-color: var(--primary);
             color: var(--primary);
+            background: var(--primary-light);
         }
 
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 2rem;
-            flex-grow: 1;
-            min-height: 0;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 1.8rem;
-            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.02);
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-        }
-
+        /* Form Inputs */
         .form-group {
-            margin-bottom: 1.2rem;
+            margin-bottom: 1.5rem;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text);
-            font-size: 0.8rem;
-            font-weight: 700;
+            margin-bottom: 0.6rem;
+            color: #64748b;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
         }
 
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 0.8rem 1rem;
+            padding: 0.9rem 1.1rem;
             background: #ffffff;
-            border: 1px solid var(--border);
-            border-radius: 10px;
+            border: 1.5px solid var(--card-border);
+            border-radius: 14px;
             color: var(--text);
             outline: none;
-            transition: 0.2s;
+            transition: var(--transition);
             font-size: 0.9rem;
+            font-weight: 500;
         }
 
         .form-group input:focus {
             border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.08);
+            background: #fff;
         }
 
-        /* Toggle Switch */
+        /* Log Viewer Component - Light Optimized */
+        .log-viewer {
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--card-border);
+            overflow: hidden;
+            height: 100%;
+            box-shadow: var(--shadow-md);
+        }
+
+        .log-header {
+            background: #f8fafc;
+            padding: 0.85rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .log-controls {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .logs-container {
+            flex-grow: 1;
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #334155;
+            overflow-y: auto;
+            line-height: 1.8;
+            background: #ffffff;
+        }
+
+        .log-line {
+            padding: 6px 0;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            gap: 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .log-line:last-child {
+            border-bottom: none;
+        }
+
+        .log-time {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            flex-shrink: 0;
+            min-width: 85px;
+            font-weight: 600;
+        }
+
+        .log-line.phase {
+            color: var(--secondary);
+            font-weight: 800;
+            background: #f0fdf4;
+            margin: 10px -1.5rem;
+            padding: 10px 1.5rem;
+            border-left: 4px solid var(--primary);
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        .log-line.error {
+            color: #e11d48;
+            background: #fff1f2;
+            padding-left: 10px;
+            border-radius: 4px;
+        }
+
+        .log-line.success {
+            color: #059669;
+            font-weight: 700;
+        }
+
+        /* Switch Styling - Light Optimized */
         .switch {
             position: relative;
             display: inline-block;
             width: 40px;
-            height: 20px;
+            height: 22px;
         }
 
         .switch input {
@@ -252,7 +431,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #cbd5e1;
+            background-color: #e2e8f0;
             transition: .4s;
             border-radius: 20px;
         }
@@ -260,13 +439,14 @@
         .slider:before {
             position: absolute;
             content: "";
-            height: 14px;
-            width: 14px;
+            height: 16px;
+            width: 16px;
             left: 3px;
             bottom: 3px;
             background-color: white;
             transition: .4s;
             border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         input:checked+.slider {
@@ -274,351 +454,272 @@
         }
 
         input:checked+.slider:before {
-            transform: translateX(20px);
+            transform: translateX(18px);
         }
 
+        /* Slot Styling - Light Optimized */
         .slot {
             padding: 1.5rem;
-            background: #f8fafc;
-            border-radius: 16px;
+            background: #ffffff;
+            border-radius: 18px;
             border: 2px dashed #cbd5e1;
-            position: relative;
-            transition: 0.2s;
             cursor: pointer;
+            transition: var(--transition);
         }
 
         .slot.filled {
             border-style: solid;
             border-color: var(--primary);
-            background: var(--primary-light);
+            background: #f0fdf4;
+            box-shadow: var(--shadow-sm);
         }
 
         .slot:hover:not(.filled) {
             border-color: var(--primary);
-            background: #f1f5f9;
+            background: #f8fafc;
+            transform: translateY(-2px);
         }
 
-        .slot-header {
-            font-size: 0.65rem;
-            color: var(--text-dim);
+        .slot-label {
+            font-size: 0.7rem;
+            color: #64748b;
             text-transform: uppercase;
             letter-spacing: 1.2px;
-            margin-bottom: 0.8rem;
             font-weight: 800;
+            margin-bottom: 0.85rem;
         }
 
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-top: 15px;
-        }
-
-        .stat-box {
-            background: white;
-            padding: 10px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            border: 1px solid var(--border);
-        }
-
-        .stat-box span {
-            display: block;
-            color: var(--text-dim);
-            font-size: 0.6rem;
-            margin-bottom: 3px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .logs-container {
-            flex-grow: 1;
-            background: #0f172a;
-            border-radius: 16px;
-            padding: 1.5rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            color: #e2e8f0;
-            overflow-y: auto;
-            border: 1px solid #1e293b;
-            line-height: 1.6;
-            box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.2);
-            min-height: 0;
-        }
-
-        .log-line {
-            margin-bottom: 6px;
-            border-left: 2px solid transparent;
-            padding-left: 12px;
-        }
-
-        .log-line.info {
-            color: #94a3b8;
-        }
-
-        .log-line.phase {
-            color: #34d399;
-            font-weight: 800;
-            border-left-color: #34d399;
-            text-transform: uppercase;
-            font-size: 0.7rem;
-            letter-spacing: 0.5px;
-        }
-
-        .log-line.success {
-            color: #10b981;
-        }
-
-        .log-line.error {
-            color: #f87171;
-            border-left-color: #f87171;
-        }
-
+        /* Modal Overlays */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 23, 42, 0.45);
+            background: rgba(15, 23, 42, 0.4);
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 100;
+            z-index: 1000;
             backdrop-filter: blur(8px);
         }
 
         .modal {
             background: #ffffff;
-            border: 1px solid var(--border);
-            width: 480px;
-            padding: 2.5rem;
-            border-radius: 24px;
-            box-shadow: 0 40px 80px rgba(15, 23, 42, 0.1);
-        }
-
-        .danger-box {
-            background: #fff1f2;
-            border: 1px solid #fecdd3;
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            color: #be123c;
-            font-size: 0.8rem;
-            line-height: 1.5;
-            font-weight: 500;
-        }
-
-        .confirm-check {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 1.2rem;
-            cursor: pointer;
-            color: var(--text);
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-
-        .confirm-check input {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-
-        @keyframes pulse {
-            0% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.6;
-            }
-
-            100% {
-                opacity: 1;
-            }
-        }
-
-        .anim-pulse {
-            animation: pulse 2s infinite;
+            border: 1px solid var(--card-border);
+            width: 500px;
+            padding: 3rem;
+            border-radius: 28px;
+            box-shadow: var(--shadow-lg);
         }
 
         .logout-btn {
             color: #ef4444;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 0.8rem;
-            border-radius: 10px;
-            transition: 0.2s;
+            gap: 10px;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            transition: var(--transition);
             font-weight: 700;
+            margin-top: auto;
+            border: 1px solid transparent;
         }
 
         .logout-btn:hover {
             background: #fff1f2;
+            border-color: #fecdd3;
+        }
+
+        .env-badge {
+            font-size: 0.6rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: #f0fdf4;
+            color: #059669;
+            font-weight: 800;
+            text-transform: uppercase;
+            border: 1px solid #bcf0da;
         }
     </style>
 </head>
 
 <body>
-    <div class="sidebar">
-        <div class="logo">
-            MongoMigrate
-        </div>
-
-        <div class="nav-section">
-            <div class="nav-label">Saved Connections</div>
-            <div id="connectionList" class="connection-list"></div>
-        </div>
-
-        <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-bottom: 1rem;"
-            onclick="openModal('connectionModal')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M12 5v14M5 12h14" />
-            </svg>
-            Add Connection
-        </button>
-
-        <a href="/api/logout" class="logout-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
-            </svg>
-            Logout session
-        </a>
-    </div>
-
-    <div class="main">
-        <header style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
-            <div>
-                <h1 style="font-size: 2.2rem; font-weight: 900; color: #0f172a; letter-spacing: -0.5px;">Migration
-                    Studio</h1>
-                <p style="color: var(--text-dim); margin-top: 4px; font-size: 0.95rem; font-weight: 500;">Secure,
-                    enterprise-grade MongoDB synchronization.</p>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
+                </div>
+                MongoMigrate
             </div>
-            <div id="status-badge" class="env-badge"
-                style="display: none; padding: 10px 20px; border-radius: 12px; background: #fff1f2; color: #e11d48; font-weight: 900; border: 1.5px solid #fecdd3;">
-                ACTIVE</div>
-        </header>
 
-        <div class="dashboard-grid">
-            <div class="migration-config">
-                <div class="card" style="height: 100%;">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
-                        <div>
-                            <h3 style="font-weight: 800; font-size: 1.1rem; color: #0f172a;">Data Flow Manager</h3>
-                            <p style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px; max-width: 200px;">
-                                Toggle "Mirror" to authorize full instance-wide data replication.
-                            </p>
-                        </div>
-                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                            <span
-                                style="font-size: 0.65rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Mirror
-                                Mode</span>
-                            <label class="switch">
-                                <input type="checkbox" id="instanceToggle" onchange="toggleInstanceMode()">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                    </div>
+            <nav class="nav-section">
+                <div class="nav-label">Databases</div>
+                <div id="connectionList" class="connection-list"></div>
+            </nav>
 
-                    <div class="migration-slots"
-                        style="display: flex; flex-direction: column; gap: 1rem; flex-grow: 1;">
-                        <div id="sourceSlot" class="slot" onclick="selectSlot('source')">
-                            <div class="slot-header">Source Context</div>
-                            <div class="slot-content">
-                                <p style="color: var(--text-dim); font-size: 0.8rem; font-weight: 500;">Select source...
-                                </p>
+            <button class="btn btn-outline" style="width: 100%; margin-bottom: 1rem;"
+                onclick="openModal('connectionModal')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <path d="M12 5v14M5 12h14" />
+                </svg>
+                Connect New
+            </button>
+
+            <a href="/api/logout" class="logout-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+                </svg>
+                Logout Session
+            </a>
+        </aside>
+
+        <main class="main-content">
+            <header class="content-header">
+                <div>
+                    <h1>Migration Studio</h1>
+                    <p style="color: var(--text-dim); font-weight: 500;">High-performance MongoDB synchronization
+                        engine.</p>
+                </div>
+                <div id="status-badge" class="env-badge"
+                    style="display: none; background: rgba(244, 63, 94, 0.1); color: #f43f5e; border-color: rgba(244, 63, 94, 0.2); padding: 8px 16px;">
+                    MIGRATION ACTIVE
+                </div>
+            </header>
+
+            <div class="studio-grid">
+                <section class="migration-config">
+                    <div class="card" style="height: 100%;">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title">Orchestration</h3>
+                                <p class="card-subtitle">Configure source and target contexts.</p>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+                                <span
+                                    style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Mirror
+                                    Instance</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="instanceToggle" onchange="toggleInstanceMode()">
+                                    <span class="slider"></span>
+                                </label>
                             </div>
                         </div>
 
-                        <div style="display: flex; justify-content: center; margin: -5px 0;">
-                            <div
-                                style="width: 32px; height: 32px; background: #ffffff; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--primary); border: 1.5px solid var(--border);">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="3">
-                                    <path d="M12 5v14M19 12l-7 7-7-7" />
-                                </svg>
+                        <div style="display: flex; flex-direction: column; gap: 1.25rem; flex-grow: 1;">
+                            <div id="sourceSlot" class="slot" onclick="selectSlot('source')">
+                                <div class="slot-label">Source Context</div>
+                                <div class="slot-content">
+                                    <p style="color: var(--text-dim); font-size: 0.85rem;">Select source node...</p>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; justify-content: center; position: relative;">
+                                <div
+                                    style="width: 1px; height: 20px; background: var(--card-border); position: absolute; top: -10px;">
+                                </div>
+                                <div
+                                    style="width: 36px; height: 36px; background: var(--sidebar-bg); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--primary); border: 1px solid var(--card-border); z-index: 2;">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="3">
+                                        <path d="M12 5v14M19 12l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                                <div
+                                    style="width: 1px; height: 20px; background: var(--card-border); position: absolute; bottom: -10px;">
+                                </div>
+                            </div>
+
+                            <div id="targetSlot" class="slot" onclick="selectSlot('target')">
+                                <div class="slot-label">Target Destination</div>
+                                <div class="slot-content">
+                                    <p style="color: var(--text-dim); font-size: 0.85rem;">Select target node...</p>
+                                </div>
                             </div>
                         </div>
 
-                        <div id="targetSlot" class="slot" onclick="selectSlot('target')">
-                            <div class="slot-header">Target Destination</div>
-                            <div class="slot-content">
-                                <p style="color: var(--text-dim); font-size: 0.8rem; font-weight: 500;">Select target...
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 1.5rem;">
                         <button id="preStartBtn" class="btn btn-primary"
-                            style="width: 100%; justify-content: center; padding: 1rem; font-size: 0.95rem;"
-                            onclick="openConfirmModal()" disabled>
-                            Authorize Protocol
+                            style="width: 100%; margin-top: 2rem; padding: 1.1rem;" onclick="openConfirmModal()"
+                            disabled>
+                            Initialize Protocol
                         </button>
                     </div>
-                </div>
-            </div>
+                </section>
 
-            <div class="live-logs">
-                <div class="card" style="height: 100%;">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
-                        <h3
-                            style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 800;">
-                            Process Stream</h3>
-                        <button class="btn btn-outline"
-                            style="padding: 0.5rem 1rem; font-size: 0.7rem; border-radius: 8px; font-weight: 700;"
-                            onclick="clearLogs()">Clear</button>
+                <section class="live-logs">
+                    <div class="log-viewer">
+                        <div class="log-header">
+                            <h3
+                                style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; color: var(--text-dim);">
+                                Live Process Stream</h3>
+                            <div class="log-controls">
+                                <label
+                                    style="display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--text-muted); cursor: pointer;">
+                                    <span>Follow</span>
+                                    <label class="switch">
+                                        <input type="checkbox" id="autoScrollToggle" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </label>
+                                <div style="width: 1px; height: 20px; background: var(--card-border);"></div>
+                                <button class="btn btn-outline"
+                                    style="padding: 4px 10px; font-size: 0.7rem; border-radius: 6px;"
+                                    onclick="clearLogs()">Reset</button>
+                            </div>
+                        </div>
+                        <div id="logs" class="logs-container">
+                            <div class="log-line">
+                                <span class="log-time">[${new Date().toLocaleTimeString()}]</span>
+                                <span style="color: var(--text-muted)">SYSTEM READY. Awaiting authorization...</span>
+                            </div>
+                        </div>
                     </div>
-                    <div id="logs" class="logs-container">
-                        <div class="log-line info">SYSTEM IDLE. Awaiting data mount.</div>
-                    </div>
-                </div>
+                </section>
             </div>
-        </div>
+        </main>
     </div>
 
     <!-- Connection Modal -->
     <div id="connectionModal" class="modal-overlay">
         <div class="modal">
-            <h2 style="margin-bottom: 1.5rem; font-weight: 900; font-size: 1.4rem; color: #0f172a;">New Connection</h2>
+            <h2 style="margin-bottom: 2rem; font-weight: 900; font-size: 1.5rem;">New Context</h2>
             <form id="connectionForm" onsubmit="saveConnection(event)">
                 <div class="form-group">
-                    <label>Label</label>
-                    <input type="text" id="connName" placeholder="e.g. AWS Prod" required>
+                    <label>Node Local Alias</label>
+                    <input type="text" id="connName" placeholder="e.g. AWS Production" required>
+                </div>
+                <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="form-group">
+                        <label>Environment</label>
+                        <select id="connEnv">
+                            <option value="Production">Production</option>
+                            <option value="Staging">Staging</option>
+                            <option value="Development" selected>Development</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Default Namespace</label>
+                        <input type="text" id="connDb" placeholder="main_db" required>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label>Environment</label>
-                    <select id="connEnv">
-                        <option value="Production">Production</option>
-                        <option value="Staging">Staging</option>
-                        <option value="Development" selected>Development</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>URI</label>
+                    <label>Connection String (URI)</label>
                     <input type="password" id="connUri" placeholder="mongodb+srv://..." required>
                 </div>
-                <div class="form-group">
-                    <label>Default DB</label>
-                    <input type="text" id="connDb" placeholder="app_db" required>
+                <div style="margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between;">
+                    <button type="button" class="btn btn-outline" style="font-size: 0.75rem;"
+                        onclick="testConnectionUI()">Verify Link</button>
+                    <div id="testStatus" style="font-size: 0.75rem; font-weight: 700;"></div>
                 </div>
-                <div style="margin-top: 1rem; display: flex; align-items: center; justify-content: space-between;">
-                    <button type="button" class="btn btn-outline" style="padding: 0.6rem 1rem; font-size: 0.75rem;"
-                        onclick="testConnectionUI()">Test Connection</button>
-                    <div id="testStatus" style="font-size: 0.75rem; font-weight: 700; display: none;"></div>
-                </div>
-                <div style="display: flex; gap: 12px; margin-top: 2rem;">
-                    <button type="button" class="btn btn-outline" style="flex: 1; justify-content: center;"
+                <div style="display: flex; gap: 1rem;">
+                    <button type="button" class="btn btn-outline" style="flex: 1;"
                         onclick="closeModal('connectionModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary"
-                        style="flex: 1; justify-content: center;">Save</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Register Node</button>
                 </div>
             </form>
         </div>
@@ -626,46 +727,50 @@
 
     <!-- Migration Warning Modal -->
     <div id="confirmModal" class="modal-overlay">
-        <div class="modal">
-            <h2 style="margin-bottom: 1rem; color: #e11d48; font-weight: 900; font-size: 1.4rem;">⚠️ WARNING</h2>
-            <div class="danger-box">
-                <strong id="confirmWarningTitle">NOTICE:</strong> Operation will <strong>drop collections</strong> in
-                target. Existing data will be <strong>destroyed</strong>.
-            </div>
+        <div class="modal" style="border-color: var(--error);">
+            <h2 style="margin-bottom: 1rem; color: var(--error); font-weight: 900; font-size: 1.6rem;">⚠️ CRITICAL
+                ACTION</h2>
+            <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6;">
+                This operation will <strong style="color: var(--text);">destructive drop</strong> all targeted
+                collections on the destination node. This action cannot be undone.
+            </p>
 
             <div id="confirmDetails"
-                style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1.5rem; background: #f8fafc; padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px;">
+                style="font-size: 0.85rem; margin-bottom: 2rem; background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--card-border); display: flex; flex-direction: column; gap: 12px;">
                 <div style="display: flex; justify-content: space-between;">
-                    <span>Source:</span>
-                    <span id="confirmSource" style="color: #0f172a; font-weight: 800;"></span>
+                    <span style="color: var(--text-muted)">Source:</span>
+                    <span id="confirmSource" style="font-weight: 800;"></span>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
-                    <span>Target:</span>
-                    <span id="confirmTarget" style="color: #0f172a; font-weight: 800;"></span>
+                    <span style="color: var(--text-muted)">Target:</span>
+                    <span id="confirmTarget" style="font-weight: 800;"></span>
                 </div>
                 <div
-                    style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px dashed var(--border);">
-                    <span>DB/Scope:</span>
-                    <span id="confirmDbName" style="color: #0f172a; font-weight: 800;"></span>
+                    style="display: flex; justify-content: space-between; border-top: 1px solid var(--card-border); padding-top: 12px; margin-top: 4px;">
+                    <span style="color: var(--text-muted)">Scope:</span>
+                    <span id="confirmDbName" style="color: var(--warning); font-weight: 800;"></span>
                 </div>
             </div>
 
             <div class="form-group">
-                <label id="confirmLabelText" style="font-size: 0.75rem;">Authorize by typing name:</label>
-                <input type="text" id="typeConfirm" placeholder="Type here..." oninput="validateFinalConfirm()">
+                <label id="confirmLabelText">Verify by typing confirmation:</label>
+                <input type="text" id="typeConfirm" placeholder="Verification required..."
+                    oninput="validateFinalConfirm()">
             </div>
 
-            <label class="confirm-check">
-                <input type="checkbox" id="checkConfirm" onchange="validateFinalConfirm()">
-                <span style="font-size: 0.75rem;">I understand the risks.</span>
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 2.5rem;">
+                <input type="checkbox" id="checkConfirm" onchange="validateFinalConfirm()"
+                    style="width: 20px; height: 20px; cursor: pointer;">
+                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-dim);">I acknowledge the risk of
+                    data loss.</span>
             </label>
 
-            <div style="display: flex; gap: 12px; margin-top: 2rem;">
-                <button type="button" class="btn btn-outline" style="flex: 1; justify-content: center;"
-                    onclick="closeModal('confirmModal')">Go Back</button>
+            <div style="display: flex; gap: 1rem;">
+                <button type="button" class="btn btn-outline" style="flex: 1;"
+                    onclick="closeModal('confirmModal')">Abort</button>
                 <button id="finalStartBtn" class="btn btn-primary"
-                    style="flex: 1; justify-content: center; background: #e11d48; color: white;"
-                    onclick="startMigration()" disabled>START</button>
+                    style="flex: 1.5; background: var(--error); box-shadow: 0 4px 20px rgba(244, 63, 94, 0.4);"
+                    onclick="startMigration()" disabled>START SYNCHRONIZATION</button>
             </div>
         </div>
     </div>
@@ -698,16 +803,20 @@
                 conns.forEach(conn => {
                     const item = document.createElement('div');
                     item.className = 'connection-item';
-                    item.onclick = (e) => { e.stopPropagation(); useConnection(conn); };
+                    item.onclick = (e) => {
+                        document.querySelectorAll('.connection-item').forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+                        useConnection(conn);
+                    };
                     item.innerHTML = `
                         <div class="connection-info">
                             <h4>${conn.name}</h4>
                             <p>${conn.dbname}</p>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 8px">
+                        <div style="display: flex; align-items: center; gap: 10px">
                             <span class="env-badge">${env[0]}</span>
-                            <span style="color: #cbd5e1; cursor: pointer;" onclick="deleteConnection(event, ${conn.id})">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            <span style="color: var(--text-muted); cursor: pointer;" onclick="deleteConnection(event, ${conn.id})">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                             </span>
                         </div>
                     `;
@@ -717,8 +826,13 @@
         }
 
         function useConnection(conn) {
-            if (!currentSlot) { alert("Select slot."); return; }
-            if (currentSlot === 'source') { selectedSource = conn; updateSlotUI('source', conn); } 
+            if (!currentSlot) {
+                // Auto-select slots if none selected
+                if (!selectedSource) currentSlot = 'source';
+                else if (!selectedTarget) currentSlot = 'target';
+                else return;
+            }
+            if (currentSlot === 'source') { selectedSource = conn; updateSlotUI('source', conn); }
             else { selectedTarget = conn; updateSlotUI('target', conn); }
             validateInputs();
         }
@@ -728,38 +842,44 @@
             slot.classList.add('filled');
             slot.querySelector('.slot-content').innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong style="color: #0f172a; font-size: 0.95rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${conn.name}</strong>
-                    <div id="${type}-status" class="anim-pulse" style="font-size: 0.55rem; color: var(--primary); font-weight: 900;">...</div>
+                    <strong style="color: var(--text); font-size: 1rem; font-weight: 800;">${conn.name}</strong>
+                    <div id="${type}-status" style="font-size: 0.6rem; color: var(--primary); font-weight: 900; letter-spacing: 1px;">ANALYZING...</div>
                 </div>
-                <div class="stats-row">
-                    <div class="stat-box"><span>${isInstanceMode ? 'DBs' : 'Cols'}</span> --</div>
-                    <div class="stat-box"><span>Objs</span> --</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px;">
+                    <div style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; font-size: 0.75rem;">
+                        <span style="display: block; font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase;">${isInstanceMode ? 'DBs' : 'Collections'}</span>
+                        <span id="${type}-count">--</span>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; font-size: 0.75rem;">
+                        <span style="display: block; font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase;">Objects</span>
+                        <span id="${type}-objs">--</span>
+                    </div>
                 </div>
             `;
 
             try {
                 const res = await fetch('/api/db-stats', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ uri: conn.uri, dbname: conn.dbname, is_instance: isInstanceMode })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    slot.querySelector('.stats-row').innerHTML = `
-                        <div class="stat-box"><span>${isInstanceMode ? 'DBs' : 'Cols'}</span> ${isInstanceMode ? data.stats.dbCount : data.stats.collections}</div>
-                        <div class="stat-box"><span>Objs</span> ${data.stats.objects}</div>
-                    `;
+                    document.getElementById(`${type}-count`).textContent = isInstanceMode ? data.stats.dbCount : data.stats.collections;
+                    document.getElementById(`${type}-objs`).textContent = data.stats.objects.toLocaleString();
                     const status = document.getElementById(`${type}-status`);
                     status.textContent = "VERIFIED";
-                    status.classList.remove('anim-pulse');
                     status.style.color = "var(--success)";
                 }
-            } catch (e) {}
+            } catch (e) {
+                document.getElementById(`${type}-status`).textContent = "OFFLINE";
+                document.getElementById(`${type}-status`).style.color = "var(--error)";
+            }
         }
 
         function selectSlot(type) {
             currentSlot = type;
-            document.querySelectorAll('.slot').forEach(s => s.style.borderColor = '#cbd5e1');
+            document.querySelectorAll('.slot').forEach(s => s.style.borderColor = 'var(--card-border)');
             document.getElementById(`${type}Slot`).style.borderColor = 'var(--primary)';
         }
 
@@ -770,16 +890,14 @@
         function openConfirmModal() {
             document.getElementById('confirmSource').textContent = selectedSource.name;
             document.getElementById('confirmTarget').textContent = selectedTarget.name;
-            
+
             if (isInstanceMode) {
-                document.getElementById('confirmWarningTitle').textContent = "INSTANCE MIRROR:";
-                document.getElementById('confirmDbName').textContent = "ALL DATABASES";
-                document.getElementById('confirmLabelText').innerHTML = "Type <strong>MIRROR_INSTANCE</strong>:";
+                document.getElementById('confirmDbName').textContent = "FULL INSTANCE (ALL DATABASES)";
+                document.getElementById('confirmLabelText').innerHTML = "Type <strong style='color: var(--error)'>MIRROR_INSTANCE</strong> to confirm:";
                 document.getElementById('typeConfirm').placeholder = "MIRROR_INSTANCE";
             } else {
-                document.getElementById('confirmWarningTitle').textContent = "NOTICE:";
                 document.getElementById('confirmDbName').textContent = selectedTarget.dbname;
-                document.getElementById('confirmLabelText').textContent = "Type database name:";
+                document.getElementById('confirmLabelText').innerHTML = `Type database name <strong style='color: var(--primary)'>${selectedTarget.dbname}</strong>:`;
                 document.getElementById('typeConfirm').placeholder = selectedTarget.dbname;
             }
             document.getElementById('typeConfirm').value = '';
@@ -800,8 +918,9 @@
             clearLogs();
             document.getElementById('preStartBtn').disabled = true;
             document.getElementById('status-badge').style.display = 'block';
-            socket.emit('start_migration', { 
-                source: selectedSource, 
+            addLogLine("Initializing synchronization protocol...", "info");
+            socket.emit('start_migration', {
+                source: selectedSource,
                 target: selectedTarget,
                 is_instance: isInstanceMode
             });
@@ -809,8 +928,8 @@
 
         socket.on('migration_log', (data) => {
             let msg = data.message; let type = "info";
-            if (msg.startsWith("PHASE:")) { type = "phase"; msg = msg.split("|")[1].toUpperCase(); } 
-            else if (msg.startsWith("ERROR:")) { type = "error"; } 
+            if (msg.startsWith("PHASE:")) { type = "phase"; msg = msg.split("|")[1].toUpperCase(); }
+            else if (msg.startsWith("ERROR:")) { type = "error"; }
             else if (msg.includes("successfully")) { type = "success"; }
             addLogLine(msg, type);
         });
@@ -818,19 +937,39 @@
         socket.on('migration_complete', (data) => {
             document.getElementById('preStartBtn').disabled = false;
             document.getElementById('status-badge').style.display = 'none';
-            addLogLine(data.success ? "MIGRATION COMPLETE." : "FAILED: " + data.message, data.success ? "success" : "error");
+            addLogLine(data.success ? "SYNCHRONIZATION PROTOCOL DEPLOYED SUCCESSFULLY." : "PROTOCOL FAILED: " + data.message, data.success ? "success" : "error");
         });
 
         function addLogLine(text, type) {
             const logs = document.getElementById('logs');
             const line = document.createElement('div');
             line.className = `log-line ${type}`;
-            line.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'log-time';
+            timeSpan.textContent = `[${new Date().toLocaleTimeString()}]`;
+
+            const textSpan = document.createElement('span');
+            textSpan.textContent = text;
+
+            line.appendChild(timeSpan);
+            line.appendChild(textSpan);
             logs.appendChild(line);
-            logs.scrollTop = logs.scrollHeight;
+
+            if (document.getElementById('autoScrollToggle').checked) {
+                logs.scrollTop = logs.scrollHeight;
+            }
+
+            // Limit log lines to prevent DOM bloat (e.g., last 2000 lines)
+            if (logs.children.length > 2000) {
+                logs.removeChild(logs.firstChild);
+            }
         }
 
-        function clearLogs() { document.getElementById('logs').innerHTML = ''; }
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = `<div class="log-line"><span class="log-time">[${new Date().toLocaleTimeString()}]</span><span>LOG STREAM RESET.</span></div>`;
+        }
+
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
@@ -838,28 +977,27 @@
             const uri = document.getElementById('connUri').value;
             const statusEl = document.getElementById('testStatus');
             if (!uri) { alert("Please enter a URI first."); return; }
-            
-            statusEl.style.display = 'block';
-            statusEl.style.color = 'var(--text-dim)';
-            statusEl.textContent = "Testing...";
+
+            statusEl.textContent = "Verifying Link...";
+            statusEl.style.color = "var(--text-muted)";
 
             try {
                 const res = await fetch('/api/test-connection', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ uri })
                 });
                 const data = await res.json();
                 if (data.success) {
                     statusEl.style.color = 'var(--success)';
-                    statusEl.textContent = "Connection Valid: " + data.message;
+                    statusEl.textContent = "L-VERIFIED: " + data.message;
                 } else {
                     statusEl.style.color = 'var(--error)';
-                    statusEl.textContent = "Failed: " + data.message;
+                    statusEl.textContent = "L-FAILED: Connection Reject";
                 }
             } catch (e) {
                 statusEl.style.color = 'var(--error)';
-                statusEl.textContent = "Request failed.";
+                statusEl.textContent = "L-ERROR: Request Timeout";
             }
         }
 
@@ -872,15 +1010,15 @@
                 dbname: document.getElementById('connDb').value
             };
             const res = await fetch('/api/connections', {
-                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
             });
             const result = await res.json();
-            if (result.success) { fetchConnections(); closeModal('connectionModal'); document.getElementById('connectionForm').reset(); } 
+            if (result.success) { fetchConnections(); closeModal('connectionModal'); document.getElementById('connectionForm').reset(); }
         }
 
         async function deleteConnection(e, id) {
             e.stopPropagation();
-            if (!confirm("Remove connection?")) return;
+            if (!confirm("De-register and remove connection context?")) return;
             await fetch(`/api/connections/${id}`, { method: 'DELETE' });
             fetchConnections();
         }
