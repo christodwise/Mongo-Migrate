@@ -11,11 +11,8 @@
     <style>
         :root {
             --primary: #10b981;
-            /* Emerald-500 */
             --primary-light: #ecfdf5;
-            /* Emerald-50 */
             --secondary: #059669;
-            /* Emerald-600 */
             --bg: #f8fafc;
             --sidebar-bg: #ffffff;
             --card-bg: #ffffff;
@@ -38,45 +35,36 @@
         body {
             background: var(--bg);
             color: var(--text);
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             overflow: hidden;
         }
 
         /* Sidebar */
         .sidebar {
-            width: 300px;
+            width: 280px;
             background: var(--sidebar-bg);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            padding: 2rem;
+            padding: 1.5rem;
             height: 100vh;
             box-shadow: 4px 0 20px rgba(15, 23, 42, 0.02);
             z-index: 10;
         }
 
         .logo {
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             font-weight: 800;
-            margin-bottom: 2.5rem;
+            margin-bottom: 2rem;
             color: var(--primary);
             display: flex;
             align-items: center;
-            gap: 12px;
             letter-spacing: -0.5px;
         }
 
-        .logo-icon {
-            width: 34px;
-            height: 34px;
-            background: var(--primary);
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-        }
-
         .nav-section {
-            margin-bottom: 2.5rem;
+            margin-bottom: 2rem;
             flex-grow: 1;
             overflow: hidden;
             display: flex;
@@ -85,10 +73,10 @@
 
         .nav-label {
             color: var(--text-dim);
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             text-transform: uppercase;
-            letter-spacing: 1.8px;
-            margin-bottom: 1.2rem;
+            letter-spacing: 1.5px;
+            margin-bottom: 1rem;
             font-weight: 700;
             opacity: 0.8;
         }
@@ -96,17 +84,17 @@
         .connection-list {
             list-style: none;
             overflow-y: auto;
-            padding-right: 8px;
+            padding-right: 4px;
             flex-grow: 1;
         }
 
         .connection-item {
-            padding: 1.1rem;
-            border-radius: 16px;
-            margin-bottom: 0.8rem;
+            padding: 0.9rem;
+            border-radius: 12px;
+            margin-bottom: 0.6rem;
             background: #ffffff;
             cursor: pointer;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: 0.2s;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -116,27 +104,29 @@
         .connection-item:hover {
             border-color: var(--primary);
             background: var(--primary-light);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.04);
+            transform: translateY(-1px);
         }
 
         .connection-info h4 {
-            font-size: 0.9rem;
-            margin-bottom: 4px;
+            font-size: 0.85rem;
+            padding-right: 5px;
             font-weight: 700;
             color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .connection-info p {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-dim);
             font-weight: 500;
         }
 
         .env-badge {
-            font-size: 0.6rem;
-            padding: 4px 10px;
-            border-radius: 8px;
+            font-size: 0.55rem;
+            padding: 3px 8px;
+            border-radius: 6px;
             background: #f1f5f9;
             color: #475569;
             font-weight: 800;
@@ -146,35 +136,34 @@
         /* Main Content */
         .main {
             flex-grow: 1;
-            padding: 3.5rem;
-            overflow-y: auto;
+            padding: 2.5rem;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
         }
 
         .btn {
-            padding: 1rem 1.8rem;
-            border-radius: 14px;
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
             border: none;
             cursor: pointer;
             font-weight: 700;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: 0.2s;
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
+            gap: 8px;
+            font-size: 0.85rem;
         }
 
         .btn-primary {
             background: var(--primary);
             color: white;
-            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
         }
 
         .btn-primary:hover:not(:disabled) {
             background: var(--secondary);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);
+            transform: translateY(-1px);
         }
 
         .btn-primary:disabled {
@@ -196,56 +185,58 @@
 
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1.2fr 1.8fr;
-            gap: 3rem;
-            align-items: start;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 2rem;
+            flex-grow: 1;
+            min-height: 0;
         }
 
         .card {
             background: var(--card-bg);
             border: 1px solid var(--border);
-            border-radius: 28px;
-            padding: 2.5rem;
-            box-shadow: 0 15px 35px rgba(15, 23, 42, 0.03);
-            transition: 0.3s;
+            border-radius: 20px;
+            padding: 1.8rem;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.02);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
         }
 
         .form-group {
-            margin-bottom: 1.6rem;
+            margin-bottom: 1.2rem;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 0.7rem;
+            margin-bottom: 0.5rem;
             color: var(--text);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 700;
         }
 
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 0.95rem 1.1rem;
+            padding: 0.8rem 1rem;
             background: #ffffff;
-            border: 1.5px solid var(--border);
-            border-radius: 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
             color: var(--text);
             outline: none;
-            transition: 0.3s;
-            font-size: 0.95rem;
+            transition: 0.2s;
+            font-size: 0.9rem;
         }
 
         .form-group input:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08);
         }
 
         /* Toggle Switch */
         .switch {
             position: relative;
             display: inline-block;
-            width: 48px;
-            height: 24px;
+            width: 40px;
+            height: 20px;
         }
 
         .switch input {
@@ -263,14 +254,14 @@
             bottom: 0;
             background-color: #cbd5e1;
             transition: .4s;
-            border-radius: 24px;
+            border-radius: 20px;
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 18px;
-            width: 18px;
+            height: 14px;
+            width: 14px;
             left: 3px;
             bottom: 3px;
             background-color: white;
@@ -283,16 +274,16 @@
         }
 
         input:checked+.slider:before {
-            transform: translateX(24px);
+            transform: translateX(20px);
         }
 
         .slot {
-            padding: 2.2rem;
+            padding: 1.5rem;
             background: #f8fafc;
-            border-radius: 20px;
+            border-radius: 16px;
             border: 2px dashed #cbd5e1;
             position: relative;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: 0.2s;
             cursor: pointer;
         }
 
@@ -300,7 +291,6 @@
             border-style: solid;
             border-color: var(--primary);
             background: var(--primary-light);
-            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.03);
         }
 
         .slot:hover:not(.filled) {
@@ -309,57 +299,57 @@
         }
 
         .slot-header {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--text-dim);
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 1.2rem;
+            letter-spacing: 1.2px;
+            margin-bottom: 0.8rem;
             font-weight: 800;
         }
 
         .stats-row {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-            margin-top: 20px;
+            gap: 12px;
+            margin-top: 15px;
         }
 
         .stat-box {
             background: white;
-            padding: 15px;
-            border-radius: 14px;
-            font-size: 0.9rem;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
             border: 1px solid var(--border);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.01);
         }
 
         .stat-box span {
             display: block;
             color: var(--text-dim);
-            font-size: 0.7rem;
-            margin-bottom: 5px;
+            font-size: 0.6rem;
+            margin-bottom: 3px;
             font-weight: 700;
             text-transform: uppercase;
         }
 
         .logs-container {
-            height: 550px;
+            flex-grow: 1;
             background: #0f172a;
-            border-radius: 24px;
-            padding: 1.8rem;
+            border-radius: 16px;
+            padding: 1.5rem;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #e2e8f0;
             overflow-y: auto;
             border: 1px solid #1e293b;
-            line-height: 1.8;
-            box-shadow: inset 0 8px 24px rgba(0, 0, 0, 0.3);
+            line-height: 1.6;
+            box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.2);
+            min-height: 0;
         }
 
         .log-line {
-            margin-bottom: 10px;
-            border-left: 3px solid transparent;
-            padding-left: 16px;
+            margin-bottom: 6px;
+            border-left: 2px solid transparent;
+            padding-left: 12px;
         }
 
         .log-line.info {
@@ -371,7 +361,7 @@
             font-weight: 800;
             border-left-color: #34d399;
             text-transform: uppercase;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             letter-spacing: 0.5px;
         }
 
@@ -395,46 +385,46 @@
             justify-content: center;
             align-items: center;
             z-index: 100;
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(8px);
         }
 
         .modal {
             background: #ffffff;
             border: 1px solid var(--border);
-            width: 520px;
-            padding: 3.5rem;
-            border-radius: 32px;
-            box-shadow: 0 50px 100px rgba(15, 23, 42, 0.15);
+            width: 480px;
+            padding: 2.5rem;
+            border-radius: 24px;
+            box-shadow: 0 40px 80px rgba(15, 23, 42, 0.1);
         }
 
         .danger-box {
             background: #fff1f2;
             border: 1px solid #fecdd3;
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
             color: #be123c;
-            font-size: 0.9rem;
-            line-height: 1.6;
+            font-size: 0.8rem;
+            line-height: 1.5;
             font-weight: 500;
         }
 
         .confirm-check {
             display: flex;
             align-items: center;
-            gap: 14px;
-            margin-bottom: 1.5rem;
+            gap: 10px;
+            margin-bottom: 1.2rem;
             cursor: pointer;
             color: var(--text);
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .confirm-check input {
-            width: 22px;
-            height: 22px;
+            width: 18px;
+            height: 18px;
             cursor: pointer;
-            border-radius: 6px;
+            border-radius: 4px;
         }
 
         @keyframes pulse {
@@ -457,22 +447,19 @@
 
         .logout-btn {
             color: #ef4444;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             text-decoration: none;
-            margin-top: auto;
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 1.1rem;
-            border-radius: 14px;
+            gap: 8px;
+            padding: 0.8rem;
+            border-radius: 10px;
             transition: 0.2s;
             font-weight: 700;
-            border: 1px solid transparent;
         }
 
         .logout-btn:hover {
             background: #fff1f2;
-            border-color: #fecdd3;
         }
     </style>
 </head>
@@ -480,7 +467,6 @@
 <body>
     <div class="sidebar">
         <div class="logo">
-            <div class="logo-icon"></div>
             MongoMigrate
         </div>
 
@@ -489,16 +475,16 @@
             <div id="connectionList" class="connection-list"></div>
         </div>
 
-        <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-bottom: 1.5rem;"
+        <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-bottom: 1rem;"
             onclick="openModal('connectionModal')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="M12 5v14M5 12h14" />
             </svg>
             Add Connection
         </button>
 
         <a href="/api/logout" class="logout-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
             </svg>
             Logout session
@@ -506,27 +492,33 @@
     </div>
 
     <div class="main">
-        <header style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4rem;">
+        <header style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
             <div>
-                <h1 style="font-size: 3rem; font-weight: 900; color: #0f172a; letter-spacing: -1px;">Migration Studio
-                </h1>
-                <p style="color: var(--text-dim); margin-top: 10px; font-size: 1.15rem; font-weight: 500;">Enterprise
-                    data orchestration and secure MongoDB mobility.</p>
+                <h1 style="font-size: 2.2rem; font-weight: 900; color: #0f172a; letter-spacing: -0.5px;">Migration
+                    Studio</h1>
+                <p style="color: var(--text-dim); margin-top: 4px; font-size: 0.95rem; font-weight: 500;">Secure,
+                    enterprise-grade MongoDB synchronization.</p>
             </div>
             <div id="status-badge" class="env-badge"
-                style="display: none; padding: 14px 28px; border-radius: 16px; background: #fff1f2; color: #e11d48; font-weight: 900; border: 1.5px solid #fecdd3; box-shadow: 0 10px 20px rgba(225, 29, 72, 0.1);">
-                LIVE MIGRATION ACTIVE</div>
+                style="display: none; padding: 10px 20px; border-radius: 12px; background: #fff1f2; color: #e11d48; font-weight: 900; border: 1.5px solid #fecdd3;">
+                ACTIVE</div>
         </header>
 
         <div class="dashboard-grid">
             <div class="migration-config">
-                <div class="card">
+                <div class="card" style="height: 100%;">
                     <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.2rem;">
-                        <h3 style="font-weight: 800; font-size: 1.35rem; color: #0f172a;">Data Flow Manager</h3>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-dim);">Instance
-                                Mirror</span>
+                        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                        <div>
+                            <h3 style="font-weight: 800; font-size: 1.1rem; color: #0f172a;">Data Flow Manager</h3>
+                            <p style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px; max-width: 200px;">
+                                Toggle "Mirror" to authorize full instance-wide data replication.
+                            </p>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                            <span
+                                style="font-size: 0.65rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Mirror
+                                Mode</span>
                             <label class="switch">
                                 <input type="checkbox" id="instanceToggle" onchange="toggleInstanceMode()">
                                 <span class="slider"></span>
@@ -534,18 +526,20 @@
                         </div>
                     </div>
 
-                    <div class="migration-slots" style="display: flex; flex-direction: column; gap: 2rem;">
+                    <div class="migration-slots"
+                        style="display: flex; flex-direction: column; gap: 1rem; flex-grow: 1;">
                         <div id="sourceSlot" class="slot" onclick="selectSlot('source')">
                             <div class="slot-header">Source Context</div>
                             <div class="slot-content">
-                                <p style="color: var(--text-dim); font-weight: 500;">Mount source cluster...</p>
+                                <p style="color: var(--text-dim); font-size: 0.8rem; font-weight: 500;">Select source...
+                                </p>
                             </div>
                         </div>
 
-                        <div style="display: flex; justify-content: center;">
+                        <div style="display: flex; justify-content: center; margin: -5px 0;">
                             <div
-                                style="width: 44px; height: 44px; background: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); border: 2px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                style="width: 32px; height: 32px; background: #ffffff; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--primary); border: 1.5px solid var(--border);">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="3">
                                     <path d="M12 5v14M19 12l-7 7-7-7" />
                                 </svg>
@@ -555,34 +549,35 @@
                         <div id="targetSlot" class="slot" onclick="selectSlot('target')">
                             <div class="slot-header">Target Destination</div>
                             <div class="slot-content">
-                                <p style="color: var(--text-dim); font-weight: 500;">Mount target destination...</p>
+                                <p style="color: var(--text-dim); font-size: 0.8rem; font-weight: 500;">Select target...
+                                </p>
                             </div>
                         </div>
                     </div>
 
-                    <div style="margin-top: 3.5rem;">
+                    <div style="margin-top: 1.5rem;">
                         <button id="preStartBtn" class="btn btn-primary"
-                            style="width: 100%; justify-content: center; padding: 1.3rem; font-size: 1rem;"
+                            style="width: 100%; justify-content: center; padding: 1rem; font-size: 0.95rem;"
                             onclick="openConfirmModal()" disabled>
-                            Start Migration Protocol
+                            Authorize Protocol
                         </button>
                     </div>
                 </div>
             </div>
 
             <div class="live-logs">
-                <div class="card" style="height: 100%; display: flex; flex-direction: column; padding: 2.2rem;">
+                <div class="card" style="height: 100%;">
                     <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem;">
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
                         <h3
-                            style="font-size: 0.95rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.8px; font-weight: 800;">
-                            Live Process Stream</h3>
+                            style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 800;">
+                            Process Stream</h3>
                         <button class="btn btn-outline"
-                            style="padding: 0.7rem 1.4rem; font-size: 0.8rem; border-radius: 12px; font-weight: 700;"
-                            onclick="clearLogs()">Clear Stream</button>
+                            style="padding: 0.5rem 1rem; font-size: 0.7rem; border-radius: 8px; font-weight: 700;"
+                            onclick="clearLogs()">Clear</button>
                     </div>
                     <div id="logs" class="logs-container">
-                        <div class="log-line">INITIALIZED. System ready for data context mounting.</div>
+                        <div class="log-line info">SYSTEM IDLE. Awaiting data mount.</div>
                     </div>
                 </div>
             </div>
@@ -592,15 +587,14 @@
     <!-- Connection Modal -->
     <div id="connectionModal" class="modal-overlay">
         <div class="modal">
-            <h2 style="margin-bottom: 2rem; font-weight: 900; font-size: 1.65rem; color: #0f172a;">New Connection
-                Context</h2>
+            <h2 style="margin-bottom: 1.5rem; font-weight: 900; font-size: 1.4rem; color: #0f172a;">New Connection</h2>
             <form id="connectionForm" onsubmit="saveConnection(event)">
                 <div class="form-group">
-                    <label>Context Friendly Label</label>
-                    <input type="text" id="connName" placeholder="e.g. AWS Production Primary" required>
+                    <label>Label</label>
+                    <input type="text" id="connName" placeholder="e.g. AWS Prod" required>
                 </div>
                 <div class="form-group">
-                    <label>Environment Tier</label>
+                    <label>Environment</label>
                     <select id="connEnv">
                         <option value="Production">Production</option>
                         <option value="Staging">Staging</option>
@@ -608,18 +602,18 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>MongoDB Connection URI</label>
+                    <label>URI</label>
                     <input type="password" id="connUri" placeholder="mongodb+srv://..." required>
                 </div>
                 <div class="form-group">
-                    <label>Default Database Name (for single-DB mode)</label>
-                    <input type="text" id="connDb" placeholder="app_db_prod" required>
+                    <label>Default DB</label>
+                    <input type="text" id="connDb" placeholder="app_db" required>
                 </div>
-                <div style="display: flex; gap: 15px; margin-top: 3.5rem;">
+                <div style="display: flex; gap: 12px; margin-top: 2rem;">
                     <button type="button" class="btn btn-outline" style="flex: 1; justify-content: center;"
                         onclick="closeModal('connectionModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">Initialize
-                        Context</button>
+                    <button type="submit" class="btn btn-primary"
+                        style="flex: 1; justify-content: center;">Save</button>
                 </div>
             </form>
         </div>
@@ -628,37 +622,33 @@
     <!-- Migration Warning Modal -->
     <div id="confirmModal" class="modal-overlay">
         <div class="modal">
-            <h2 style="margin-bottom: 1.2rem; color: #e11d48; font-weight: 900; font-size: 1.65rem;">⚠️ DATA DESTRUCTION
-                ALERT</h2>
+            <h2 style="margin-bottom: 1rem; color: #e11d48; font-weight: 900; font-size: 1.4rem;">⚠️ WARNING</h2>
             <div class="danger-box">
-                <strong id="confirmWarningTitle">CRITICAL NOTICE:</strong> This operation will perform an
-                <strong>irreversible drop</strong> of collections in the target. Existing data in the target context
-                will be <strong>permanently destroyed</strong>.
+                <strong id="confirmWarningTitle">NOTICE:</strong> Operation will <strong>drop collections</strong> in
+                target. Existing data will be <strong>destroyed</strong>.
             </div>
 
             <div id="confirmDetails"
-                style="font-size: 1rem; color: var(--text-dim); margin-bottom: 2rem; background: #f8fafc; padding: 1.5rem; border-radius: 18px; border: 1.5px solid var(--border);">
-                Target Scope: <span id="confirmDbName" style="color: #0f172a; font-weight: 800;"></span>
+                style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1.5rem; background: #f8fafc; padding: 1rem; border-radius: 12px; border: 1px solid var(--border);">
+                Scope: <span id="confirmDbName" style="color: #0f172a; font-weight: 800;"></span>
             </div>
 
             <div class="form-group">
-                <label id="confirmLabelText">Confirm by typing the target name:</label>
-                <input type="text" id="typeConfirm" placeholder="Re-type name here..." oninput="validateFinalConfirm()">
+                <label id="confirmLabelText" style="font-size: 0.75rem;">Authorize by typing name:</label>
+                <input type="text" id="typeConfirm" placeholder="Type here..." oninput="validateFinalConfirm()">
             </div>
 
             <label class="confirm-check">
                 <input type="checkbox" id="checkConfirm" onchange="validateFinalConfirm()">
-                <span>Yes, I accept the risks of this operation.</span>
+                <span style="font-size: 0.75rem;">I understand the risks.</span>
             </label>
 
-            <div style="display: flex; gap: 15px; margin-top: 3.5rem;">
+            <div style="display: flex; gap: 12px; margin-top: 2rem;">
                 <button type="button" class="btn btn-outline" style="flex: 1; justify-content: center;"
                     onclick="closeModal('confirmModal')">Go Back</button>
                 <button id="finalStartBtn" class="btn btn-primary"
-                    style="flex: 1; justify-content: center; background: #e11d48; color: white; box-shadow: 0 4px 14px rgba(225, 29, 72, 0.2);"
-                    onclick="startMigration()" disabled>
-                    AUTHORIZE MIGRATION
-                </button>
+                    style="flex: 1; justify-content: center; background: #e11d48; color: white;"
+                    onclick="startMigration()" disabled>START</button>
             </div>
         </div>
     </div>
@@ -687,7 +677,6 @@
         function renderConnectionList() {
             const list = document.getElementById('connectionList');
             list.innerHTML = '';
-
             for (const [env, conns] of Object.entries(allConnections)) {
                 conns.forEach(conn => {
                     const item = document.createElement('div');
@@ -698,10 +687,10 @@
                             <h4>${conn.name}</h4>
                             <p>${conn.dbname}</p>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 14px">
-                            <span class="env-badge">${env}</span>
-                            <span style="color: #64748b; cursor: pointer; transition: 0.2s" onclick="deleteConnection(event, ${conn.id})">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        <div style="display: flex; align-items: center; gap: 8px">
+                            <span class="env-badge">${env[0]}</span>
+                            <span style="color: #cbd5e1; cursor: pointer;" onclick="deleteConnection(event, ${conn.id})">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                             </span>
                         </div>
                     `;
@@ -711,8 +700,8 @@
         }
 
         function useConnection(conn) {
-            if (!currentSlot) { alert("Select source or target slot first."); return; }
-            if (currentSlot === 'source') { selectedSource = conn; updateSlotUI('source', conn); }
+            if (!currentSlot) { alert("Select slot."); return; }
+            if (currentSlot === 'source') { selectedSource = conn; updateSlotUI('source', conn); } 
             else { selectedTarget = conn; updateSlotUI('target', conn); }
             validateInputs();
         }
@@ -722,39 +711,33 @@
             slot.classList.add('filled');
             slot.querySelector('.slot-content').innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong style="color: #0f172a; font-size: 1.1rem; font-weight: 800;">${conn.name}</strong>
-                    <div id="${type}-status" class="anim-pulse" style="font-size: 0.65rem; color: var(--primary); letter-spacing: 1.5px; font-weight: 900;">SYNCING...</div>
+                    <strong style="color: #0f172a; font-size: 0.95rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${conn.name}</strong>
+                    <div id="${type}-status" class="anim-pulse" style="font-size: 0.55rem; color: var(--primary); font-weight: 900;">...</div>
                 </div>
                 <div class="stats-row">
-                    <div class="stat-box"><span>${isInstanceMode ? 'DBs' : 'Collections'}</span> --</div>
-                    <div class="stat-box"><span>Objects</span> --</div>
+                    <div class="stat-box"><span>${isInstanceMode ? 'DBs' : 'Cols'}</span> --</div>
+                    <div class="stat-box"><span>Objs</span> --</div>
                 </div>
             `;
 
             try {
                 const res = await fetch('/api/db-stats', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ uri: conn.uri, dbname: conn.dbname, is_instance: isInstanceMode })
                 });
                 const data = await res.json();
                 if (data.success) {
                     slot.querySelector('.stats-row').innerHTML = `
-                        <div class="stat-box"><span>${isInstanceMode ? 'Databases' : 'Collections'}</span> ${isInstanceMode ? data.stats.dbCount : data.stats.collections}</div>
-                        <div class="stat-box"><span>Total Objects</span> ${data.stats.objects}</div>
+                        <div class="stat-box"><span>${isInstanceMode ? 'DBs' : 'Cols'}</span> ${isInstanceMode ? data.stats.dbCount : data.stats.collections}</div>
+                        <div class="stat-box"><span>Objs</span> ${data.stats.objects}</div>
                     `;
                     const status = document.getElementById(`${type}-status`);
                     status.textContent = "VERIFIED";
                     status.classList.remove('anim-pulse');
                     status.style.color = "var(--success)";
-                } else {
-                    document.getElementById(`${type}-status`).textContent = "ERROR";
-                    document.getElementById(`${type}-status`).style.color = "var(--error)";
                 }
-            } catch (e) {
-                document.getElementById(`${type}-status`).textContent = "OFFLINE";
-                document.getElementById(`${type}-status`).style.color = "var(--error)";
-            }
+            } catch (e) {}
         }
 
         function selectSlot(type) {
@@ -768,18 +751,15 @@
         }
 
         function openConfirmModal() {
-            if (selectedSource.uri === selectedTarget.uri && !isInstanceMode && selectedSource.dbname === selectedTarget.dbname) {
-                alert("Security Error: Source and target must be unique contexts."); return;
-            }
             if (isInstanceMode) {
-                document.getElementById('confirmWarningTitle').textContent = "FULL INSTANCE MIRROR:";
+                document.getElementById('confirmWarningTitle').textContent = "INSTANCE MIRROR:";
                 document.getElementById('confirmDbName').textContent = "ALL DATABASES";
-                document.getElementById('confirmLabelText').innerHTML = "Type <strong>MIRROR_INSTANCE</strong> to authorize full overwrite:";
+                document.getElementById('confirmLabelText').innerHTML = "Type <strong>MIRROR_INSTANCE</strong>:";
                 document.getElementById('typeConfirm').placeholder = "MIRROR_INSTANCE";
             } else {
-                document.getElementById('confirmWarningTitle').textContent = "CRITICAL NOTICE:";
+                document.getElementById('confirmWarningTitle').textContent = "NOTICE:";
                 document.getElementById('confirmDbName').textContent = selectedTarget.dbname;
-                document.getElementById('confirmLabelText').textContent = "Confirm by typing the target database name:";
+                document.getElementById('confirmLabelText').textContent = "Type database name:";
                 document.getElementById('typeConfirm').placeholder = selectedTarget.dbname;
             }
             document.getElementById('typeConfirm').value = '';
@@ -798,28 +778,10 @@
         async function startMigration() {
             closeModal('confirmModal');
             clearLogs();
-            addLogLine(`Establishing secure ${isInstanceMode ? 'instance' : 'database'} context...`, "info");
-
-            const preRes = await fetch('/api/preflight', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ source: selectedSource, target: selectedTarget })
-            });
-            const { checks } = await preRes.json();
-
-            let failed = false;
-            checks.forEach(check => {
-                addLogLine(`${check.status === 'pass' ? '✓' : '✗'} ${check.msg}`, check.status === 'pass' ? 'success' : 'error');
-                if (check.status === 'fail') failed = true;
-            });
-
-            if (failed) { addLogLine("Protocol Halt: Environment verification failed.", "error"); return; }
-
             document.getElementById('preStartBtn').disabled = true;
             document.getElementById('status-badge').style.display = 'block';
-
-            socket.emit('start_migration', {
-                source: selectedSource,
+            socket.emit('start_migration', { 
+                source: selectedSource, 
                 target: selectedTarget,
                 is_instance: isInstanceMode
             });
@@ -827,8 +789,8 @@
 
         socket.on('migration_log', (data) => {
             let msg = data.message; let type = "info";
-            if (msg.startsWith("PHASE:")) { type = "phase"; msg = msg.split("|")[1].toUpperCase(); }
-            else if (msg.startsWith("ERROR:")) { type = "error"; }
+            if (msg.startsWith("PHASE:")) { type = "phase"; msg = msg.split("|")[1].toUpperCase(); } 
+            else if (msg.startsWith("ERROR:")) { type = "error"; } 
             else if (msg.includes("successfully")) { type = "success"; }
             addLogLine(msg, type);
         });
@@ -836,8 +798,7 @@
         socket.on('migration_complete', (data) => {
             document.getElementById('preStartBtn').disabled = false;
             document.getElementById('status-badge').style.display = 'none';
-            if (data.success) { addLogLine("🏁 MIGRATION PROTOCOL COMPLETED SUCCESSFULLY.", "success"); }
-            else { addLogLine("💥 CRITICAL SYSTEM ALERT: " + data.message, "error"); }
+            addLogLine(data.success ? "MIGRATION COMPLETE." : "FAILED: " + data.message, data.success ? "success" : "error");
         });
 
         function addLogLine(text, type) {
@@ -862,16 +823,15 @@
                 dbname: document.getElementById('connDb').value
             };
             const res = await fetch('/api/connections', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)
             });
             const result = await res.json();
-            if (result.success) { fetchConnections(); closeModal('connectionModal'); document.getElementById('connectionForm').reset(); }
-            else { alert(result.message); }
+            if (result.success) { fetchConnections(); closeModal('connectionModal'); document.getElementById('connectionForm').reset(); } 
         }
 
         async function deleteConnection(e, id) {
             e.stopPropagation();
-            if (!confirm("Are you sure you want to de-mount this connection?")) return;
+            if (!confirm("Remove connection?")) return;
             await fetch(`/api/connections/${id}`, { method: 'DELETE' });
             fetchConnections();
         }
