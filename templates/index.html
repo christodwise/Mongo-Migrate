@@ -10,15 +10,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-light: #eff6ff;
-            --secondary: #4f46e5;
+            --primary: #10b981;
+            /* Emerald-500 */
+            --primary-light: #ecfdf5;
+            /* Emerald-50 */
+            --secondary: #059669;
+            /* Emerald-600 */
             --bg: #f8fafc;
             --sidebar-bg: #ffffff;
             --card-bg: #ffffff;
             --text: #0f172a;
             --text-dim: #64748b;
-            --accent: #2563eb;
+            --accent: #10b981;
             --success: #10b981;
             --error: #ef4444;
             --warning: #f59e0b;
@@ -69,7 +72,7 @@
             height: 34px;
             background: var(--primary);
             border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
         }
 
         .nav-section {
@@ -114,7 +117,7 @@
             border-color: var(--primary);
             background: var(--primary-light);
             transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(15, 23, 42, 0.04);
+            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.04);
         }
 
         .connection-info h4 {
@@ -165,13 +168,13 @@
         .btn-primary {
             background: var(--primary);
             color: white;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
         }
 
         .btn-primary:hover:not(:disabled) {
-            background: #1d4ed8;
+            background: var(--secondary);
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);
         }
 
         .btn-primary:disabled {
@@ -234,7 +237,53 @@
 
         .form-group input:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08);
+        }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
         }
 
         .slot {
@@ -250,8 +299,8 @@
         .slot.filled {
             border-style: solid;
             border-color: var(--primary);
-            background: #eff6ff;
-            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.03);
+            background: var(--primary-light);
+            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.03);
         }
 
         .slot:hover:not(.filled) {
@@ -318,16 +367,16 @@
         }
 
         .log-line.phase {
-            color: #38bdf8;
+            color: #34d399;
             font-weight: 800;
-            border-left-color: #38bdf8;
+            border-left-color: #34d399;
             text-transform: uppercase;
             font-size: 0.75rem;
             letter-spacing: 0.5px;
         }
 
         .log-line.success {
-            color: #4ade80;
+            color: #10b981;
         }
 
         .log-line.error {
@@ -472,8 +521,18 @@
         <div class="dashboard-grid">
             <div class="migration-config">
                 <div class="card">
-                    <h3 style="margin-bottom: 2.2rem; font-weight: 800; font-size: 1.35rem; color: #0f172a;">Data Flow
-                        Manager</h3>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.2rem;">
+                        <h3 style="font-weight: 800; font-size: 1.35rem; color: #0f172a;">Data Flow Manager</h3>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-dim);">Instance
+                                Mirror</span>
+                            <label class="switch">
+                                <input type="checkbox" id="instanceToggle" onchange="toggleInstanceMode()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
 
                     <div class="migration-slots" style="display: flex; flex-direction: column; gap: 2rem;">
                         <div id="sourceSlot" class="slot" onclick="selectSlot('source')">
@@ -553,7 +612,7 @@
                     <input type="password" id="connUri" placeholder="mongodb+srv://..." required>
                 </div>
                 <div class="form-group">
-                    <label>Target Database Name</label>
+                    <label>Default Database Name (for single-DB mode)</label>
                     <input type="text" id="connDb" placeholder="app_db_prod" required>
                 </div>
                 <div style="display: flex; gap: 15px; margin-top: 3.5rem;">
@@ -572,18 +631,18 @@
             <h2 style="margin-bottom: 1.2rem; color: #e11d48; font-weight: 900; font-size: 1.65rem;">⚠️ DATA DESTRUCTION
                 ALERT</h2>
             <div class="danger-box">
-                <strong>CRITICAL NOTICE:</strong> This operation will perform an <strong>irreversible drop</strong> of
-                collections in the target database. Existing data in the following context will be <strong>permanently
-                    destroyed</strong>.
+                <strong id="confirmWarningTitle">CRITICAL NOTICE:</strong> This operation will perform an
+                <strong>irreversible drop</strong> of collections in the target. Existing data in the target context
+                will be <strong>permanently destroyed</strong>.
             </div>
 
             <div id="confirmDetails"
                 style="font-size: 1rem; color: var(--text-dim); margin-bottom: 2rem; background: #f8fafc; padding: 1.5rem; border-radius: 18px; border: 1.5px solid var(--border);">
-                Target Database: <span id="confirmDbName" style="color: #0f172a; font-weight: 800;"></span>
+                Target Scope: <span id="confirmDbName" style="color: #0f172a; font-weight: 800;"></span>
             </div>
 
             <div class="form-group">
-                <label>Confirm by typing the target database name:</label>
+                <label id="confirmLabelText">Confirm by typing the target name:</label>
                 <input type="text" id="typeConfirm" placeholder="Re-type name here..." oninput="validateFinalConfirm()">
             </div>
 
@@ -596,7 +655,7 @@
                 <button type="button" class="btn btn-outline" style="flex: 1; justify-content: center;"
                     onclick="closeModal('confirmModal')">Go Back</button>
                 <button id="finalStartBtn" class="btn btn-primary"
-                    style="flex: 1; justify-content: center; background: #e11d48; color: white;"
+                    style="flex: 1; justify-content: center; background: #e11d48; color: white; box-shadow: 0 4px 14px rgba(225, 29, 72, 0.2);"
                     onclick="startMigration()" disabled>
                     AUTHORIZE MIGRATION
                 </button>
@@ -610,6 +669,7 @@
         let selectedSource = null;
         let selectedTarget = null;
         let allConnections = {};
+        let isInstanceMode = false;
 
         async function fetchConnections() {
             const res = await fetch('/api/connections');
@@ -618,10 +678,16 @@
             renderConnectionList();
         }
 
+        function toggleInstanceMode() {
+            isInstanceMode = document.getElementById('instanceToggle').checked;
+            if (selectedSource) updateSlotUI('source', selectedSource);
+            if (selectedTarget) updateSlotUI('target', selectedTarget);
+        }
+
         function renderConnectionList() {
             const list = document.getElementById('connectionList');
             list.innerHTML = '';
-            
+
             for (const [env, conns] of Object.entries(allConnections)) {
                 conns.forEach(conn => {
                     const item = document.createElement('div');
@@ -646,7 +712,7 @@
 
         function useConnection(conn) {
             if (!currentSlot) { alert("Select source or target slot first."); return; }
-            if (currentSlot === 'source') { selectedSource = conn; updateSlotUI('source', conn); } 
+            if (currentSlot === 'source') { selectedSource = conn; updateSlotUI('source', conn); }
             else { selectedTarget = conn; updateSlotUI('target', conn); }
             validateInputs();
         }
@@ -657,10 +723,10 @@
             slot.querySelector('.slot-content').innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <strong style="color: #0f172a; font-size: 1.1rem; font-weight: 800;">${conn.name}</strong>
-                    <div id="${type}-status" class="anim-pulse" style="font-size: 0.65rem; color: var(--primary); letter-spacing: 1.5px; font-weight: 900;">CONNECTED</div>
+                    <div id="${type}-status" class="anim-pulse" style="font-size: 0.65rem; color: var(--primary); letter-spacing: 1.5px; font-weight: 900;">SYNCING...</div>
                 </div>
                 <div class="stats-row">
-                    <div class="stat-box"><span>Collections</span> --</div>
+                    <div class="stat-box"><span>${isInstanceMode ? 'DBs' : 'Collections'}</span> --</div>
                     <div class="stat-box"><span>Objects</span> --</div>
                 </div>
             `;
@@ -668,14 +734,14 @@
             try {
                 const res = await fetch('/api/db-stats', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ uri: conn.uri, dbname: conn.dbname })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uri: conn.uri, dbname: conn.dbname, is_instance: isInstanceMode })
                 });
                 const data = await res.json();
                 if (data.success) {
                     slot.querySelector('.stats-row').innerHTML = `
-                        <div class="stat-box"><span>Collections</span> ${data.stats.collections}</div>
-                        <div class="stat-box"><span>Objects</span> ${data.stats.objects}</div>
+                        <div class="stat-box"><span>${isInstanceMode ? 'Databases' : 'Collections'}</span> ${isInstanceMode ? data.stats.dbCount : data.stats.collections}</div>
+                        <div class="stat-box"><span>Total Objects</span> ${data.stats.objects}</div>
                     `;
                     const status = document.getElementById(`${type}-status`);
                     status.textContent = "VERIFIED";
@@ -702,10 +768,20 @@
         }
 
         function openConfirmModal() {
-            if (selectedSource.uri === selectedTarget.uri && selectedSource.dbname === selectedTarget.dbname) {
+            if (selectedSource.uri === selectedTarget.uri && !isInstanceMode && selectedSource.dbname === selectedTarget.dbname) {
                 alert("Security Error: Source and target must be unique contexts."); return;
             }
-            document.getElementById('confirmDbName').textContent = selectedTarget.dbname;
+            if (isInstanceMode) {
+                document.getElementById('confirmWarningTitle').textContent = "FULL INSTANCE MIRROR:";
+                document.getElementById('confirmDbName').textContent = "ALL DATABASES";
+                document.getElementById('confirmLabelText').innerHTML = "Type <strong>MIRROR_INSTANCE</strong> to authorize full overwrite:";
+                document.getElementById('typeConfirm').placeholder = "MIRROR_INSTANCE";
+            } else {
+                document.getElementById('confirmWarningTitle').textContent = "CRITICAL NOTICE:";
+                document.getElementById('confirmDbName').textContent = selectedTarget.dbname;
+                document.getElementById('confirmLabelText').textContent = "Confirm by typing the target database name:";
+                document.getElementById('typeConfirm').placeholder = selectedTarget.dbname;
+            }
             document.getElementById('typeConfirm').value = '';
             document.getElementById('checkConfirm').checked = false;
             document.getElementById('finalStartBtn').disabled = true;
@@ -715,21 +791,22 @@
         function validateFinalConfirm() {
             const typed = document.getElementById('typeConfirm').value;
             const checked = document.getElementById('checkConfirm').checked;
-            document.getElementById('finalStartBtn').disabled = !(typed === selectedTarget.dbname && checked);
+            const keyword = isInstanceMode ? "MIRROR_INSTANCE" : selectedTarget.dbname;
+            document.getElementById('finalStartBtn').disabled = !(typed === keyword && checked);
         }
 
         async function startMigration() {
             closeModal('confirmModal');
             clearLogs();
-            addLogLine("Establishing secure architecture... Running pre-flight validations.", "info");
-            
+            addLogLine(`Establishing secure ${isInstanceMode ? 'instance' : 'database'} context...`, "info");
+
             const preRes = await fetch('/api/preflight', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ source: selectedSource, target: selectedTarget })
             });
             const { checks } = await preRes.json();
-            
+
             let failed = false;
             checks.forEach(check => {
                 addLogLine(`${check.status === 'pass' ? '✓' : '✗'} ${check.msg}`, check.status === 'pass' ? 'success' : 'error');
@@ -740,14 +817,18 @@
 
             document.getElementById('preStartBtn').disabled = true;
             document.getElementById('status-badge').style.display = 'block';
-            
-            socket.emit('start_migration', { source: selectedSource, target: selectedTarget });
+
+            socket.emit('start_migration', {
+                source: selectedSource,
+                target: selectedTarget,
+                is_instance: isInstanceMode
+            });
         }
 
         socket.on('migration_log', (data) => {
             let msg = data.message; let type = "info";
-            if (msg.startsWith("PHASE:")) { type = "phase"; msg = msg.split("|")[1].toUpperCase(); } 
-            else if (msg.startsWith("ERROR:")) { type = "error"; } 
+            if (msg.startsWith("PHASE:")) { type = "phase"; msg = msg.split("|")[1].toUpperCase(); }
+            else if (msg.startsWith("ERROR:")) { type = "error"; }
             else if (msg.includes("successfully")) { type = "success"; }
             addLogLine(msg, type);
         });
@@ -755,7 +836,7 @@
         socket.on('migration_complete', (data) => {
             document.getElementById('preStartBtn').disabled = false;
             document.getElementById('status-badge').style.display = 'none';
-            if (data.success) { addLogLine("🏁 MIGRATION PROTOCOL COMPLETED SUCCESSFULLY.", "success"); } 
+            if (data.success) { addLogLine("🏁 MIGRATION PROTOCOL COMPLETED SUCCESSFULLY.", "success"); }
             else { addLogLine("💥 CRITICAL SYSTEM ALERT: " + data.message, "error"); }
         });
 
@@ -781,10 +862,10 @@
                 dbname: document.getElementById('connDb').value
             };
             const res = await fetch('/api/connections', {
-                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
             });
             const result = await res.json();
-            if (result.success) { fetchConnections(); closeModal('connectionModal'); document.getElementById('connectionForm').reset(); } 
+            if (result.success) { fetchConnections(); closeModal('connectionModal'); document.getElementById('connectionForm').reset(); }
             else { alert(result.message); }
         }
 

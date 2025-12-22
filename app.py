@@ -93,7 +93,8 @@ def test_connection():
 def get_db_stats():
     data = request.json
     try:
-        stats = migration.get_db_stats(data['uri'], data['dbname'])
+        is_instance = data.get('is_instance', False)
+        stats = migration.get_db_stats(data['uri'], data['dbname'], is_instance)
         return jsonify({'success': True, 'stats': stats})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
@@ -110,12 +111,13 @@ def handle_migration(data):
     migration_id = secrets.token_hex(4)
     source = data['source']
     target = data['target']
+    is_instance = data.get('is_instance', False)
     
     def log_callback(message):
         socketio.emit('migration_log', {'id': migration_id, 'message': message})
     
     def run_migration():
-        success, message = migration.migrate_db(source, target, log_callback)
+        success, message = migration.migrate_db(source, target, log_callback, is_instance)
         socketio.emit('migration_complete', {
             'id': migration_id, 
             'success': success, 

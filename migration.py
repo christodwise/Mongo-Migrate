@@ -27,16 +27,17 @@ def run_command(command, log_callback):
     if process.returncode != 0:
         raise Exception(f"Command failed with exit code {process.returncode}")
 
-def migrate_db(source, target, log_callback):
+def migrate_db(source, target, log_callback, is_instance=False):
     """
     source: dict with 'uri' and 'dbname'
     target: dict with 'uri' and 'dbname'
+    is_instance: bool, if True, migrate all dbs
     """
     dump_dir = os.path.join(os.getcwd(), 'temp_dump')
     
     try:
         # 1. mongodump
-        log_callback(f"PHASE:DUMPING|Starting dump from source...")
+        log_callback(f"PHASE:DUMPING|Starting {'instance' if is_instance else 'database'} dump...")
         if os.path.exists(dump_dir):
              import shutil
              shutil.rmtree(dump_dir)
@@ -45,29 +46,32 @@ def migrate_db(source, target, log_callback):
         dump_cmd = [
             'mongodump',
             '--uri', source['uri'],
-            '--db', source['dbname'],
             '--out', dump_dir
         ]
+        if not is_instance:
+            dump_cmd.extend(['--db', source['dbname']])
         
         run_command(dump_cmd, log_callback)
         log_callback("Dump completed successfully.")
         
-        # 2. Preparation (No explicit 'drop tables' equivalent needed if using --drop in restore)
-        log_callback("PHASE:PREPARING|Preparing target database...")
+        # 2. Preparation
+        log_callback(f"PHASE:PREPARING|Preparing target {'instance' if is_instance else 'database'}...")
         
         # 3. mongorestore
-        log_callback(f"PHASE:RESTORING|Starting restore to target...")
-        
-        # The dump output will be in dump_dir/dbname
-        restore_path = os.path.join(dump_dir, source['dbname'])
+        log_callback(f"PHASE:RESTORING|Starting {'instance' if is_instance else 'database'} restore...")
         
         restore_cmd = [
             'mongorestore',
             '--uri', target['uri'],
-            '--db', target['dbname'],
             '--drop', # Drop collections on target before restoring
-            restore_path
         ]
+        
+        if not is_instance:
+            restore_cmd.extend(['--db', target['dbname']])
+            restore_path = os.path.join(dump_dir, source['dbname'])
+            restore_cmd.append(restore_path)
+        else:
+            restore_cmd.append(dump_dir)
         
         run_command(restore_cmd, log_callback)
         log_callback("Restore completed successfully.")
@@ -90,27 +94,45 @@ def test_connection(uri):
     """Tests connection and returns MongoDB version."""
     try:
         client = MongoClient(uri, serverSelectionTimeoutMS=5000)
-        # The ismaster command is cheap and does not require auth.
-        info = client.admin.command('ismaster')
         server_info = client.server_info()
         version = server_info.get('version', 'Unknown')
         return True, f"MongoDB {version}"
     except Exception as e:
         return False, str(e)
 
-def get_db_stats(uri, dbname):
-    """Returns basic stats about the database."""
+def get_db_stats(uri, dbname, is_instance=False):
+    """Returns basic stats about the database or instance."""
     try:
         client = MongoClient(uri)
-        db = client[dbname]
-        stats = db.command('dbStats')
-        
-        return {
-            'collections': stats.get('collections', 0),
-            'objects': stats.get('objects', 0),
-            'dataSize': stats.get('dataSize', 0),
-            'storageSize': stats.get('storageSize', 0)
-        }
+        if is_instance:
+            # Aggregate stats for all DBs
+            dbs = client.list_database_names()
+            ignore = ['admin', 'config', 'local']
+            total_collections = 0
+            total_objects = 0
+            for db_name in dbs:
+                if db_name in ignore: continue
+                db = client[db_name]
+                try:
+                    stats = db.command('dbStats')
+                    total_collections += stats.get('collections', 0)
+                    total_objects += stats.get('objects', 0)
+                except:
+                    continue
+            return {
+                'collections': total_collections,
+                'objects': total_objects,
+                'dbCount': len([d for d in dbs if d not in ignore])
+            }
+        else:
+            db = client[dbname]
+            stats = db.command('dbStats')
+            return {
+                'collections': stats.get('collections', 0),
+                'objects': stats.get('objects', 0),
+                'dataSize': stats.get('dataSize', 0),
+                'storageSize': stats.get('storageSize', 0)
+            }
     except Exception as e:
         raise e
 
@@ -121,16 +143,16 @@ def preflight_check(source, target):
     # Check 1: Source Connectivity
     s_ok, s_msg = test_connection(source['uri'])
     if s_ok:
-        checks.append({'status': 'pass', 'msg': f"Source Connected: {s_msg}"})
+        checks.append({'status': 'pass', 'msg': f"Source Context: {s_msg}"})
     else:
-        checks.append({'status': 'fail', 'msg': f"Source Failed: {s_msg}"})
+        checks.append({'status': 'fail', 'msg': f"Source Offline: {s_msg}"})
         return checks
         
     # Check 2: Target Connectivity
     t_ok, t_msg = test_connection(target['uri'])
     if t_ok:
-        checks.append({'status': 'pass', 'msg': f"Target Connected: {t_msg}"})
+        checks.append({'status': 'pass', 'msg': f"Target Context: {t_msg}"})
     else:
-        checks.append({'status': 'fail', 'msg': f"Target Failed: {t_msg}"})
+        checks.append({'status': 'fail', 'msg': f"Target Offline: {t_msg}"})
     
     return checks
