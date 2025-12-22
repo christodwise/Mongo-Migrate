@@ -4,6 +4,25 @@ import time
 import json
 import shutil
 from pymongo import MongoClient
+from urllib.parse import urlparse, urlunparse
+
+def get_base_uri(uri):
+    """Strips the database name from a MongoDB URI for shell command compatibility."""
+    try:
+        parsed = urlparse(uri)
+        # Reconstruct without the path (which is the database name)
+        # Keep query parameters if they exist (e.g. authSource, replicaSet)
+        new_uri = urlunparse((
+            parsed.scheme,
+            parsed.netloc,
+            '/', # Clear the path
+            parsed.params,
+            parsed.query,
+            parsed.fragment
+        ))
+        return new_uri
+    except:
+        return uri
 
 def run_command(command, log_callback, redact_patterns=None):
     """Executes a command and streams output to log_callback with redaction."""
@@ -38,6 +57,14 @@ def migrate_db(source, target, log_callback, is_instance=False):
     if source.get('uri'): redact_patterns.append(source['uri'])
     if target.get('uri'): redact_patterns.append(target['uri'])
     
+    # Base URIs for shell commands (stripping DB names to avoid conflict with --db flag)
+    source_uri = get_base_uri(source['uri'])
+    target_uri = get_base_uri(target['uri'])
+    
+    # Add base URIs to redaction patterns as well
+    if source_uri not in redact_patterns: redact_patterns.append(source_uri)
+    if target_uri not in redact_patterns: redact_patterns.append(target_uri)
+    
     try:
         client = MongoClient(source['uri'])
         
@@ -50,10 +77,10 @@ def migrate_db(source, target, log_callback, is_instance=False):
             
             # 1. Sync Authentication Data (Users/Roles)
             log_callback("PHASE:AUTH|Synchronizing System Credentials...")
-            auth_cmd_dump = ["mongodump", "--uri", source['uri'], "--db", "admin", "--out", temp_dir]
+            auth_cmd_dump = ["mongodump", "--uri", source_uri, "--db", "admin", "--out", temp_dir]
             try:
                 run_command(auth_cmd_dump, log_callback, redact_patterns)
-                auth_cmd_restore = ["mongorestore", "--uri", target['uri'], os.path.join(temp_dir, "admin")]
+                auth_cmd_restore = ["mongorestore", "--uri", target_uri, os.path.join(temp_dir, "admin")]
                 run_command(auth_cmd_restore, log_callback, redact_patterns)
                 log_callback("System credentials synchronized.")
             except Exception as auth_err:
@@ -65,11 +92,11 @@ def migrate_db(source, target, log_callback, is_instance=False):
                 
                 # Dump
                 db_temp = os.path.join(temp_dir, db_name)
-                dump_cmd = ["mongodump", "--uri", source['uri'], "--db", db_name, "--out", temp_dir]
+                dump_cmd = ["mongodump", "--uri", source_uri, "--db", db_name, "--out", temp_dir]
                 run_command(dump_cmd, log_callback, redact_patterns)
                 
                 # Restore
-                restore_cmd = ["mongorestore", "--uri", target['uri'], "--db", db_name, "--drop", db_temp]
+                restore_cmd = ["mongorestore", "--uri", target_uri, "--db", db_name, "--drop", db_temp]
                 run_command(restore_cmd, log_callback, redact_patterns)
                 
                 log_callback(f"Database {db_name} synchronized successfully.")
@@ -80,10 +107,10 @@ def migrate_db(source, target, log_callback, is_instance=False):
             # Single DB Mode
             log_callback(f"PHASE:MIGRATING|Context: {source['dbname']} -> {target['dbname']}")
             
-            dump_cmd = ["mongodump", "--uri", source['uri'], "--db", source['dbname'], "--out", temp_dir]
+            dump_cmd = ["mongodump", "--uri", source_uri, "--db", source['dbname'], "--out", temp_dir]
             run_command(dump_cmd, log_callback, redact_patterns)
             
-            restore_cmd = ["mongorestore", "--uri", target['uri'], "--drop"]
+            restore_cmd = ["mongorestore", "--uri", target_uri, "--drop"]
             source_path = os.path.join(temp_dir, source['dbname'])
             if not os.path.exists(source_path):
                 raise Exception(f"Dump path not found at {source_path}")
