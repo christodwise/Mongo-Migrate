@@ -61,6 +61,7 @@
             height: 100vh;
             display: flex;
             overflow: hidden;
+            /* Prevent body scroll */
             -webkit-font-smoothing: antialiased;
         }
 
@@ -188,11 +189,13 @@
         .main-content {
             flex-grow: 1;
             padding: 2.5rem;
-            overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 2rem;
             background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+            /* Main content does not scroll */
         }
 
         .content-header {
@@ -362,6 +365,7 @@
             font-size: 0.85rem;
             color: #334155;
             overflow-y: auto;
+            /* Logs are the only scrollable area */
             line-height: 1.8;
             background: #ffffff;
         }
@@ -487,6 +491,88 @@
             letter-spacing: 1.2px;
             font-weight: 800;
             margin-bottom: 0.85rem;
+        }
+
+        /* Modernized Orchestration Styles */
+        .selector-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .selector-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .selector-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .selector-icon.source {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--primary);
+        }
+
+        .selector-icon.destination {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info);
+        }
+
+        .selector-info label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+        }
+
+        .selector-info p {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .transfer-arrow {
+            display: flex;
+            justify-content: center;
+            margin: -0.25rem 0;
+            color: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        .stat-box {
+            background: #fff;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .stat-label {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-weight: 800;
+            color: var(--text);
+            font-size: 1.1rem;
+            letter-spacing: -0.5px;
         }
 
         /* Modal Overlays */
