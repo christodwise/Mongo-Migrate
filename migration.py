@@ -7,20 +7,29 @@ from pymongo import MongoClient
 from urllib.parse import urlparse, urlunparse
 
 def get_base_uri(uri):
-    """Strips the database name from a MongoDB URI for shell command compatibility."""
+    """Robustly strips the database name from a MongoDB URI for shell command compatibility."""
+    if not uri: return uri
     try:
-        parsed = urlparse(uri)
-        # Reconstruct without the path (which is the database name)
-        # Keep query parameters if they exist (e.g. authSource, replicaSet)
-        new_uri = urlunparse((
-            parsed.scheme,
-            parsed.netloc,
-            '/', # Clear the path
-            parsed.params,
-            parsed.query,
-            parsed.fragment
-        ))
-        return new_uri
+        # Standard MongoDB URI: mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultdb][?options]]
+        # We need to find the part after the hosts and before the options.
+        
+        # 1. Handle query parameters first
+        base_part = uri.split('?')[0]
+        options_part = f"?{uri.split('?')[1]}" if '?' in uri else ""
+        
+        # 2. Find the host section (after //)
+        if '//' in base_part:
+            schema, rest = base_part.split('//', 1)
+            # Find the first slash after the host/identity section
+            if '/' in rest:
+                host_section, _ = rest.split('/', 1)
+                # Reconstruct: schema + // + host_section + / + options
+                # The trailing slash ensures mongodump/restore treat it as a base URI
+                return f"{schema}//{host_section}/{options_part}"
+            else:
+                # No database specified, just ensure a trailing slash for safety
+                return f"{base_part}/{options_part}"
+        return uri
     except:
         return uri
 

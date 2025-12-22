@@ -214,13 +214,27 @@
         /* Layout Grid */
         .studio-grid {
             display: grid;
-            grid-template-columns: 420px 1fr;
-            grid-template-rows: minmax(0, 1fr);
-            /* Ensure row height is constrained */
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr;
             gap: 2rem;
             flex-grow: 1;
             min-height: 0;
-            /* Critical for inner scrolling */
+            overflow: hidden;
+        }
+
+        .migration-config {
+            grid-column: span 2;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            min-height: 0;
+        }
+
+        .live-logs {
+            grid-column: span 2;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Reusable Card Component */
@@ -503,94 +517,91 @@
         }
 
         /* Modernized Orchestration Styles - Premium Polish */
-        .selector-group {
+        .context-card {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 1.5rem;
             background: #ffffff;
-            padding: 1.25rem;
-            border-radius: 20px;
+            padding: 2.25rem;
+            border-radius: 28px;
             border: 1px solid var(--card-border);
             transition: var(--transition);
+            box-shadow: var(--shadow-md);
             position: relative;
+            overflow: hidden;
         }
 
-        .selector-group:focus-within {
-            border-color: var(--primary);
-            box-shadow: 0 10px 30px rgba(var(--primary-rgb), 0.08);
-            transform: translateY(-2px);
+        .context-card.source {
+            border-top: 4px solid var(--primary);
+        }
+
+        .context-card.destination {
+            border-top: 4px solid var(--info);
+        }
+
+        .context-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
         }
 
         .selector-header {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 18px;
+            margin-bottom: 0.5rem;
         }
 
         .selector-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+            font-size: 1.25rem;
         }
 
         .selector-icon.source {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.05) 100%);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
             color: var(--primary);
-            border: 1px solid rgba(16, 185, 129, 0.1);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.1);
         }
 
         .selector-icon.destination {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.05) 100%);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%);
             color: var(--info);
-            border: 1px solid rgba(59, 130, 246, 0.1);
-        }
-
-        .selector-info {
-            flex-grow: 1;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.1);
         }
 
         .selector-info label {
             display: block;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             font-weight: 800;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 2px;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
         }
 
-        .selector-info p {
-            font-size: 0.85rem;
+        .selector-info h3 {
+            font-size: 1.25rem;
             color: var(--text);
-            font-weight: 700;
-            letter-spacing: -0.2px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
         }
 
-        .transfer-arrow {
-            display: flex;
-            justify-content: center;
-            margin: -0.5rem 0;
-            color: var(--text-muted);
-            opacity: 0.4;
-            position: relative;
-            z-index: 2;
-        }
-
-        .transfer-arrow svg {
-            background: var(--bg);
-            padding: 4px;
-            border-radius: 50%;
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: auto;
         }
 
         .stat-box {
-            background: #ffffff;
-            padding: 14px;
-            border-radius: 14px;
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 16px;
             border: 1px solid var(--card-border);
             display: flex;
             flex-direction: column;
@@ -598,13 +609,18 @@
             transition: var(--transition);
         }
 
-        .stat-box:hover {
+        .stat-box.source-stat:hover {
             border-color: var(--primary);
             background: var(--primary-light);
         }
 
+        .stat-box.target-stat:hover {
+            border-color: var(--info);
+            background: rgba(59, 130, 246, 0.04);
+        }
+
         .stat-label {
-            font-size: 0.55rem;
+            font-size: 0.6rem;
             color: var(--text-muted);
             text-transform: uppercase;
             font-weight: 800;
@@ -614,8 +630,8 @@
         .stat-value {
             font-weight: 900;
             color: var(--text);
-            font-size: 1.25rem;
-            letter-spacing: -0.7px;
+            font-size: 1.35rem;
+            letter-spacing: -0.8px;
         }
 
         /* Modal Overlays */
@@ -723,16 +739,58 @@
 
             <div class="studio-grid">
                 <section class="migration-config">
-                    <div class="card" style="height: 100%;">
-                        <div class="card-header">
-                            <div>
-                                <h3 class="card-title">Orchestration</h3>
-                                <p class="card-subtitle">Configure source and destination nodes.</p>
+                    <!-- Source Card -->
+                    <div class="context-card source">
+                        <div class="selector-header">
+                            <div class="selector-icon source">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5">
+                                    <path
+                                        d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                                    </path>
+                                </svg>
                             </div>
-                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+                            <div class="selector-info">
+                                <label>Origin</label>
+                                <h3>Source Node</h3>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <select id="sourceSelect" onchange="handleSelect('source')">
+                                <option value="" disabled selected>Connect to source...</option>
+                            </select>
+                        </div>
+
+                        <div id="sourceStats" class="stat-grid" style="display: none;">
+                            <div class="stat-box source-stat">
+                                <span class="stat-label" id="sourceStatLabel1">Collections</span>
+                                <span class="stat-value" id="sourceStatVal1">--</span>
+                            </div>
+                            <div class="stat-box source-stat">
+                                <span class="stat-label">Objects</span>
+                                <span class="stat-value" id="sourceStatVal2">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Destination Card -->
+                    <div class="context-card destination">
+                        <div class="selector-header">
+                            <div class="selector-icon destination">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5">
+                                    <path d="M3 3h18v18H3zM8 12h8M12 8v8" />
+                                </svg>
+                            </div>
+                            <div class="selector-info">
+                                <label>Target</label>
+                                <h3>Destination Node</h3>
+                            </div>
+                            <div style="margin-left: auto; text-align: right;">
                                 <span
-                                    style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Full
-                                    Sync Mode</span>
+                                    style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Full
+                                    Sync</span>
                                 <label class="switch">
                                     <input type="checkbox" id="instanceToggle" onchange="toggleInstanceMode()">
                                     <span class="slider"></span>
@@ -740,75 +798,30 @@
                             </div>
                         </div>
 
-                        <div style="display: flex; flex-direction: column; gap: 1.5rem; flex-grow: 1; min-height: 0;">
-                            <div class="selector-group">
-                                <div class="selector-header">
-                                    <div class="selector-icon source">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2.5">
-                                            <path
-                                                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
-                                            </path>
-                                        </svg>
-                                    </div>
-                                    <div class="selector-info">
-                                        <label>Source Node</label>
-                                        <p>Primary data origin</p>
-                                    </div>
-                                </div>
-                                <select id="sourceSelect" onchange="handleSelect('source')">
-                                    <option value="" disabled selected>Connect to source...</option>
-                                </select>
-                            </div>
-
-                            <div class="transfer-arrow">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="3">
-                                    <path d="M12 5v14M19 12l-7 7-7-7" />
-                                </svg>
-                            </div>
-
-                            <div class="selector-group">
-                                <div class="selector-header">
-                                    <div class="selector-icon destination">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2.5">
-                                            <path d="M3 3h18v18H3zM8 12h8M12 8v8" />
-                                        </svg>
-                                    </div>
-                                    <div class="selector-info">
-                                        <label>Destination Node</label>
-                                        <p>Target sync environment</p>
-                                    </div>
-                                </div>
-                                <select id="targetSelect" onchange="handleSelect('target')">
-                                    <option value="" disabled selected>Connect to destination...</option>
-                                </select>
-                            </div>
-
-                            <div id="selectionStats"
-                                style="display: none; padding: 1.25rem; background: #f1f5f9; border-radius: 16px; border: 1px solid var(--card-border); margin-top: 0.5rem;">
-                                <div
-                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-                                    <div class="stat-box">
-                                        <span class="stat-label" id="statLabel1">Collections</span>
-                                        <span class="stat-value" id="statVal1">--</span>
-                                    </div>
-                                    <div class="stat-box">
-                                        <span class="stat-label">Objects</span>
-                                        <span class="stat-value" id="statVal2">--</span>
-                                    </div>
-                                </div>
-                                <div id="selectionStatus"
-                                    style="font-size: 0.65rem; font-weight: 800; text-align: center; letter-spacing: 1px; text-transform: uppercase;">
-                                </div>
-                            </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <select id="targetSelect" onchange="handleSelect('target')">
+                                <option value="" disabled selected>Connect to destination...</option>
+                            </select>
                         </div>
 
+                        <div id="targetStats" class="stat-grid" style="display: none;">
+                            <div class="stat-box target-stat">
+                                <span class="stat-label">Ready State</span>
+                                <span class="stat-value" id="targetReady"
+                                    style="color: var(--primary); font-size: 1rem;">VERIFIED</span>
+                            </div>
+                            <div class="stat-box target-stat">
+                                <span class="stat-label">Environment</span>
+                                <span class="stat-value" id="targetEnv" style="font-size: 1rem;">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="grid-column: span 2; display: flex; justify-content: center; margin-top: -1rem;">
                         <button id="preStartBtn" class="btn btn-primary"
-                            style="width: 100%; margin-top: 2rem; padding: 1.1rem;" onclick="openConfirmModal()"
-                            disabled>
-                            Initialize Protocol
+                            style="width: 380px; padding: 1.25rem; font-size: 1rem; border-radius: 16px;"
+                            onclick="openConfirmModal()" disabled>
+                            Initialize Synchronization
                         </button>
                     </div>
                 </section>
@@ -962,6 +975,10 @@
 
         function toggleInstanceMode() {
             isInstanceMode = document.getElementById('instanceToggle').checked;
+            const label = isInstanceMode ? "Total DBs" : "Collections";
+            if (document.getElementById('sourceStatLabel1')) {
+                document.getElementById('sourceStatLabel1').textContent = label;
+            }
             updateStats();
         }
 
@@ -971,8 +988,8 @@
 
             const options = rawConnections.map(c => `<option value="${c.id}">${c.name} (${c.dbname})</option>`).join('');
 
-            sourceSelect.innerHTML = '<option value="" disabled selected>Select source connection...</option>' + options;
-            targetSelect.innerHTML = '<option value="" disabled selected>Select destination connection...</option>' + options;
+            sourceSelect.innerHTML = '<option value="" disabled selected>Connect to source...</option>' + options;
+            targetSelect.innerHTML = '<option value="" disabled selected>Connect to destination...</option>' + options;
         }
 
         function renderConnectionList() {
@@ -1002,28 +1019,24 @@
         function handleSelect(type) {
             const select = document.getElementById(`${type}Select`);
             const conn = rawConnections.find(c => c.id == select.value);
-            if (type === 'source') selectedSource = conn;
-            else selectedTarget = conn;
+            if (type === 'source') {
+                selectedSource = conn;
+                document.getElementById('sourceStats').style.display = 'grid';
+            } else {
+                selectedTarget = conn;
+                document.getElementById('targetStats').style.display = 'grid';
+                document.getElementById('targetEnv').textContent = conn.environment || '--';
+            }
 
             updateStats();
             validateInputs();
         }
 
         async function updateStats() {
-            const statsBlock = document.getElementById('selectionStats');
-            const statusLabel = document.getElementById('selectionStatus');
-            const statLabel1 = document.getElementById('statLabel1');
+            if (!selectedSource) return;
 
-            statLabel1.textContent = isInstanceMode ? "Total DBs" : "Collections";
-
-            if (!selectedSource) {
-                statsBlock.style.display = 'none';
-                return;
-            }
-
-            statsBlock.style.display = 'grid';
-            statusLabel.textContent = "ANALYZING SOURCE...";
-            statusLabel.style.color = "var(--primary)";
+            const val1 = document.getElementById('sourceStatVal1');
+            const val2 = document.getElementById('sourceStatVal2');
 
             try {
                 const res = await fetch('/api/db-stats', {
@@ -1037,17 +1050,15 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    document.getElementById('statVal1').textContent = isInstanceMode ? data.stats.dbCount : data.stats.collections;
-                    document.getElementById('statVal2').textContent = data.stats.objects.toLocaleString();
-                    statusLabel.textContent = "SOURCE VERIFIED";
-                    statusLabel.style.color = "var(--success)";
+                    val1.textContent = isInstanceMode ? data.stats.dbCount : data.stats.collections;
+                    val2.textContent = data.stats.objects.toLocaleString();
                 } else {
-                    statusLabel.textContent = "SOURCE OFFLINE";
-                    statusLabel.style.color = "var(--error)";
+                    val1.textContent = "ERR";
+                    val2.textContent = "OFFLINE";
                 }
             } catch (e) {
-                statusLabel.textContent = "ANALYSIS ERROR";
-                statusLabel.style.color = "var(--error)";
+                val1.textContent = "!";
+                val2.textContent = "ERR";
             }
         }
 
@@ -1096,7 +1107,10 @@
 
         socket.on('migration_log', (data) => {
             let msg = data.message; let type = "info";
-            if (msg.startsWith("PHASE:")) { type = "phase"; msg = msg.split("|")[1].toUpperCase(); }
+            if (msg.startsWith("PHASE:")) {
+                type = "phase";
+                msg = msg.split("|")[1].toUpperCase();
+            }
             else if (msg.startsWith("ERROR:")) { type = "error"; }
             else if (msg.includes("successfully")) { type = "success"; }
             addLogLine(msg, type);
