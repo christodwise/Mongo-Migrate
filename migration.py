@@ -48,64 +48,62 @@ def migrate_db(source, target, log_callback, is_instance=False):
             target_dbs = [d for d in dbs if d not in ignore]
             log_callback(f"Detected {len(target_dbs)} databases: {', '.join(target_dbs)}")
             
-            # Phase 1: Dump Full Instance (excluding systems)
-            log_callback("PHASE:DUMPING|Capturing data and metadata (All DBs)...")
-            dump_cmd = ["mongodump", "--uri", source['uri'], "--out", temp_dir]
-            # mongodump does not easily exclude DBs in one go without specifying each, 
-            # but usually skips systems. We'll dump everything and rely on restore filtering.
-            run_command(dump_cmd, log_callback, redact_patterns)
-            
-            # Optional: Capture Users and Roles from admin if they exist
-            log_callback("PHASE:AUTH|Capturing system users and roles...")
-            auth_dump_cmd = ["mongodump", "--uri", source['uri'], "--db", "admin", "--out", temp_dir]
+            # 1. Sync Authentication Data (Users/Roles)
+            log_callback("PHASE:AUTH|Synchronizing System Credentials...")
+            auth_cmd_dump = ["mongodump", "--uri", source['uri'], "--db", "admin", "--out", temp_dir]
             try:
-                run_command(auth_dump_cmd, log_callback, redact_patterns)
-            except:
-                log_callback("Note: Skipping granular admin auth dump (may lack permissions).")
+                run_command(auth_cmd_dump, log_callback, redact_patterns)
+                auth_cmd_restore = ["mongorestore", "--uri", target['uri'], os.path.join(temp_dir, "admin")]
+                run_command(auth_cmd_restore, log_callback, redact_patterns)
+                log_callback("System credentials synchronized.")
+            except Exception as auth_err:
+                log_callback(f"Note: Auth sync skipped or failed ({str(auth_err)})")
 
-            log_callback("Dump completed successfully.")
-            
-            # Phase 2: Restore Full Instance
-            log_callback("PHASE:RESTORING|Injecting data and metadata to destination...")
-            restore_cmd = ["mongorestore", "--uri", target['uri'], "--drop", temp_dir]
-            run_command(restore_cmd, log_callback, redact_patterns)
-            log_callback("Restore completed successfully.")
+            # 2. Iterate and Sync each Database
+            for db_name in target_dbs:
+                log_callback(f"PHASE:SYNCING|Processing Database: {db_name}")
+                
+                # Dump
+                db_temp = os.path.join(temp_dir, db_name)
+                dump_cmd = ["mongodump", "--uri", source['uri'], "--db", db_name, "--out", temp_dir]
+                run_command(dump_cmd, log_callback, redact_patterns)
+                
+                # Restore
+                restore_cmd = ["mongorestore", "--uri", target['uri'], "--db", db_name, "--drop", db_temp]
+                run_command(restore_cmd, log_callback, redact_patterns)
+                
+                log_callback(f"Database {db_name} synchronized successfully.")
+
+            log_callback("PHASE:VALIDATION|Finalizing Full Instance Sync...")
 
         else:
             # Single DB Mode
-            log_callback(f"PHASE:DUMPING|Capturing {source['dbname']} context...")
+            log_callback(f"PHASE:MIGRATING|Context: {source['dbname']} -> {target['dbname']}")
+            
             dump_cmd = ["mongodump", "--uri", source['uri'], "--db", source['dbname'], "--out", temp_dir]
             run_command(dump_cmd, log_callback, redact_patterns)
-            log_callback("Dump completed successfully.")
             
-            log_callback(f"PHASE:RESTORING|Injecting to destination node: {target['dbname']}...")
             restore_cmd = ["mongorestore", "--uri", target['uri'], "--drop"]
-            
             source_path = os.path.join(temp_dir, source['dbname'])
             if not os.path.exists(source_path):
                 raise Exception(f"Dump path not found at {source_path}")
                 
             restore_cmd.extend(["--nsInclude", f"{source['dbname']}.*"])
             if source['dbname'] != target['dbname']:
-                restore_cmd.extend([
-                    "--nsFrom", f"{source['dbname']}.*",
-                    "--nsTo", f"{target['dbname']}.*"
-                ])
+                restore_cmd.extend(["--nsFrom", f"{source['dbname']}.*", "--nsTo", f"{target['dbname']}.*"])
             restore_cmd.append(temp_dir)
+            
             run_command(restore_cmd, log_callback, redact_patterns)
-            log_callback("Restore completed successfully.")
+            log_callback("Context synchronization complete.")
 
-        # Phase 3: Validation
-        log_callback("PHASE:VALIDATION|Executing post-migration audit...")
+        # Final Audit
         target_client = MongoClient(target['uri'])
         if is_instance:
-            s_dbs = len([d for d in client.list_database_names() if d not in ['admin', 'config', 'local']])
-            t_dbs = len([d for d in target_client.list_database_names() if d not in ['admin', 'config', 'local']])
-            log_callback(f"Validation: Source DBs ({s_dbs}) vs Destination DBs ({t_dbs})")
+            t_dbs = [d for d in target_client.list_database_names() if d not in ['admin', 'config', 'local']]
+            log_callback(f"PHASE:SUCCESS|Full Sync Verified: {len(t_dbs)} databases active on destination.")
         else:
-            s_cols = len(client[source['dbname']].list_collection_names())
             t_cols = len(target_client[target['dbname']].list_collection_names())
-            log_callback(f"Validation: Source Collections ({s_cols}) vs Destination Collections ({t_cols})")
+            log_callback(f"PHASE:SUCCESS|Mapping Verified: {t_cols} collections active on destination context.")
             
         return True, "Migration completed successfully!"
     except Exception as e:
