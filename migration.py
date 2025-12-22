@@ -47,7 +47,7 @@ def migrate_db(source, target, log_callback, is_instance=False):
             dump_cmd.extend(["--db", source['dbname']])
             log_callback(f"Targeting database: {source['dbname']}")
         else:
-            log_callback("Full instance migration initiated (Mirror Mode)")
+            log_callback("Full instance migration initiated (Full Sync Mode)")
             # Exclude system databases for full instance dump
             # mongodump doesn't have an exclude-db flag easily for full dump, 
             # but it usually skips admin/config/local unless specified.
