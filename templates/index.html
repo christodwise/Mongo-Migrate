@@ -215,9 +215,12 @@
         .studio-grid {
             display: grid;
             grid-template-columns: 420px 1fr;
+            grid-template-rows: minmax(0, 1fr);
+            /* Ensure row height is constrained */
             gap: 2rem;
             flex-grow: 1;
             min-height: 0;
+            /* Critical for inner scrolling */
         }
 
         /* Reusable Card Component */
@@ -340,6 +343,8 @@
             border: 1px solid var(--card-border);
             overflow: hidden;
             height: 100%;
+            min-height: 0;
+            /* Critical for inner scrolling */
             box-shadow: var(--shadow-md);
         }
 
@@ -365,9 +370,13 @@
             font-size: 0.85rem;
             color: #334155;
             overflow-y: auto;
-            /* Logs are the only scrollable area */
+            overflow-x: hidden;
+            /* Prevent horizontal scroll unless necessary */
             line-height: 1.8;
             background: #ffffff;
+            /* Extra styles to ensure it behaves */
+            display: block;
+            min-height: 0;
         }
 
         .log-line {
