@@ -65,9 +65,24 @@ def run_command(command, log_callback, redact_patterns=None):
         universal_newlines=True
     )
     
+    current_phase = None
     for line in process.stdout:
         output = line.strip()
         if output:
+            # Enhanced log parsing for progress visualization
+            if "writing metadata" in output.lower() or "restoring metadata" in output.lower():
+                if current_phase != "METADATA":
+                    log_callback("PHASE:METADATA|Synchronizing System Metadata...")
+                    current_phase = "METADATA"
+            elif "restoring" in output.lower() and "collection" in output.lower():
+                if current_phase != "DATA":
+                    log_callback("PHASE:DATA|Transferring Collection Data...")
+                    current_phase = "DATA"
+            elif "index" in output.lower() and ("creating" in output.lower() or "building" in output.lower()):
+                if current_phase != "INDEX":
+                    log_callback("PHASE:INDEX|Rebuilding Database Indexes...")
+                    current_phase = "INDEX"
+
             if redact_patterns:
                 for pattern in redact_patterns:
                     output = output.replace(pattern, "******")
@@ -95,18 +110,33 @@ def migrate_db(source, target, log_callback):
     if target_uri not in redact_patterns: redact_patterns.append(target_uri)
     
     try:
-        log_callback("PHASE:DISCOVERY|Initializing Full Instance Sync...")
+        log_callback("PHASE:DISCOVERY|Initializing Optimized Full Instance Sync...")
         
+        # Determine concurrency based on CPU cores (min 4, max 16)
+        cores = os.cpu_count() or 4
+        concurrency = max(4, min(cores, 16))
+        log_callback(f"Engine tuning: Utilizing {concurrency} parallel streams.")
+
         # Phase 1: Full Instance Dump
-        log_callback("PHASE:DUMPING|Capturing Full Instance (All DBs + Metadata)...")
-        # Ensure we don't include --db in the command list to avoid conflicts with URI
-        dump_cmd = ["mongodump", "--uri", source_uri, "--out", temp_dir]
+        log_callback("PHASE:DUMPING|Capturing Full Instance (Parallel Mode)...")
+        dump_cmd = [
+            "mongodump", 
+            "--uri", source_uri, 
+            "--out", temp_dir,
+            "--numParallelCollections", str(concurrency)
+        ]
         run_command(dump_cmd, log_callback, redact_patterns)
         
         # Phase 2: Full Instance Restore
-        log_callback("PHASE:RESTORING|Injecting Instance to Destination...")
-        # Using --drop ensures destination collections are cleaned before restore
-        restore_cmd = ["mongorestore", "--uri", target_uri, "--drop", temp_dir]
+        log_callback("PHASE:RESTORING|Injecting Instance to Destination (High-Throughput)...")
+        restore_cmd = [
+            "mongorestore", 
+            "--uri", target_uri, 
+            "--drop", temp_dir,
+            "--numParallelCollections", str(concurrency),
+            "--numInsertionWorkersPerCollection", str(concurrency),
+            "--maintainInsertionOrder=false"
+        ]
         run_command(restore_cmd, log_callback, redact_patterns)
         
         log_callback("Full Instance synchronization complete.")
