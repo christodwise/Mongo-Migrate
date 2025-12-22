@@ -7,22 +7,45 @@ from pymongo import MongoClient
 from urllib.parse import urlparse, urlunparse
 
 def get_base_uri(uri):
-    """Surgically strips the database name from a MongoDB URI for shell compatibility."""
+    """Robustly strips the database name from any MongoDB URI format."""
     if not uri: return uri
     try:
+        # Standardize: Ensure we handle common URI structures including mongodb+srv
+        from urllib.parse import urlparse, urlunparse
         parsed = urlparse(uri)
-        # Reconstruct without path (database name), keeping all query options
-        # path character '/' is ignored if provided as the third argument
+        
+        # We force the path to be exactly '/' to strip any database name
+        # while preserving all netloc info (user:pass@host:port) and query options.
         new_uri = urlunparse((
             parsed.scheme,
             parsed.netloc,
             '/', 
-            parsed.params,
+            '', # params
             parsed.query,
             parsed.fragment
         ))
+        
+        # Extra safety: if for some reason urlunparse adds the DB back or something weird happens,
+        # we can do a secondary check here, but urlparse/urlunparse is generally reliable for this.
         return new_uri
-    except:
+    except Exception as e:
+        # If urlparse fails, we fallback to a simple split logic
+        try:
+            if "?" in uri:
+                base_part, options = uri.split("?", 1)
+                # Split authority from path
+                if "://" in base_part:
+                    scheme, rest = base_part.split("://", 1)
+                    if "/" in rest:
+                        authority = rest.split("/", 1)[0]
+                        return f"{scheme}://{authority}/?{options}"
+            elif "://" in uri:
+                scheme, rest = uri.split("://", 1)
+                if "/" in rest:
+                    authority = rest.split("/", 1)[0]
+                    return f"{scheme}://{authority}/"
+        except:
+            pass
         return uri
 
 def run_command(command, log_callback, redact_patterns=None):
@@ -55,7 +78,7 @@ def run_command(command, log_callback, redact_patterns=None):
         raise Exception(f"Command failed with exit code {process.returncode}")
 
 def migrate_db(source, target, log_callback):
-    """Performs full MongoDB instance migration using mongodump and mongorestore."""
+    """Performs full MongoDB instance migration using a single-pass dump/restore."""
     temp_dir = f"/tmp/migration_{int(time.time())}"
     os.makedirs(temp_dir, exist_ok=True)
     
@@ -72,21 +95,17 @@ def migrate_db(source, target, log_callback):
     if target_uri not in redact_patterns: redact_patterns.append(target_uri)
     
     try:
-        client = MongoClient(source['uri'])
-        
-        log_callback("PHASE:DISCOVERY|Detecting instance databases...")
-        dbs = client.list_database_names()
-        ignore = ['admin', 'config', 'local']
-        target_dbs = [d for d in dbs if d not in ignore]
-        log_callback(f"Found {len(target_dbs)} databases. Initializing Full Instance Sync...")
+        log_callback("PHASE:DISCOVERY|Initializing Full Instance Sync...")
         
         # Phase 1: Full Instance Dump
         log_callback("PHASE:DUMPING|Capturing Full Instance (All DBs + Metadata)...")
+        # Ensure we don't include --db in the command list to avoid conflicts with URI
         dump_cmd = ["mongodump", "--uri", source_uri, "--out", temp_dir]
         run_command(dump_cmd, log_callback, redact_patterns)
         
         # Phase 2: Full Instance Restore
         log_callback("PHASE:RESTORING|Injecting Instance to Destination...")
+        # Using --drop ensures destination collections are cleaned before restore
         restore_cmd = ["mongorestore", "--uri", target_uri, "--drop", temp_dir]
         run_command(restore_cmd, log_callback, redact_patterns)
         
