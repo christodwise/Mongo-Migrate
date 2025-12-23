@@ -132,10 +132,11 @@ def migrate_db(source, target, log_callback):
         restore_cmd = [
             "mongorestore", 
             "--uri", target_uri, 
-            "--drop", temp_dir,
+            "--drop",
             "--numParallelCollections", str(concurrency),
             "--numInsertionWorkersPerCollection", str(concurrency),
-            "--maintainInsertionOrder=false"
+            "--maintainInsertionOrder=false",
+            temp_dir
         ]
         run_command(restore_cmd, log_callback, redact_patterns)
         
