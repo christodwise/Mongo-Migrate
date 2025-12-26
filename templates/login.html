@@ -5,26 +5,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | MongoMigrate</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <style>
         :root {
-            --primary: #10b981;
-            --primary-rgb: 16, 185, 129;
-            --bg: #f8fafc;
-            /* Slate 50 */
+            --primary: #4f46e5;
+            /* Indigo 600 */
+            --primary-rgb: 79, 70, 229;
+            --bg: #f1f5f9;
+            /* Slate 100 */
             --card-bg: #ffffff;
             --text: #0f172a;
+            /* Slate 900 */
             --text-dim: #475569;
+            /* Slate 600 */
             --border: #e2e8f0;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Slate 200 */
+            --transition: all 0.2s ease-in-out;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
 
         body {
@@ -41,119 +45,99 @@
         .login-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
-            width: 440px;
-            padding: 4rem;
-            border-radius: 32px;
-            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.05);
-            /* Softer shadow for light */
+            width: 400px;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             text-align: center;
             position: relative;
             z-index: 10;
         }
 
-        /* Subtle background glow - adjusted for light */
-        .login-card::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 140%;
-            height: 140%;
-            background: radial-gradient(circle, rgba(var(--primary-rgb), 0.08) 0%, transparent 60%);
-            transform: translate(-50%, -50%);
-            z-index: -1;
-        }
-
         .logo {
-            font-size: 2rem;
-            font-weight: 900;
-            color: var(--primary);
-            margin-bottom: 3rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 2.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 14px;
-            letter-spacing: -1px;
+            gap: 12px;
+            letter-spacing: -0.025em;
         }
 
         .logo-icon {
-            width: 42px;
-            height: 42px;
+            width: 36px;
+            height: 36px;
             background: var(--primary);
-            border-radius: 12px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.3);
         }
 
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
             text-align: left;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 0.6rem;
+            margin-bottom: 0.5rem;
             color: #64748b;
             font-size: 0.75rem;
-            font-weight: 800;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.05em;
         }
 
         .form-group input {
             width: 100%;
-            padding: 1.1rem 1.4rem;
+            padding: 0.75rem 1rem;
             background: #ffffff;
-            border: 1.5px solid var(--border);
-            border-radius: 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
             color: var(--text);
             outline: none;
             transition: var(--transition);
-            font-size: 1rem;
-            font-weight: 500;
+            font-size: 0.9rem;
         }
 
         .form-group input:focus {
             border-color: var(--primary);
-            background: #ffffff;
-            box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
         }
 
         .btn {
             width: 100%;
-            padding: 1.1rem;
-            border-radius: 16px;
+            padding: 0.75rem;
+            border-radius: 8px;
             border: none;
             cursor: pointer;
-            font-weight: 800;
-            font-size: 1.05rem;
+            font-weight: 700;
+            font-size: 0.9rem;
             transition: var(--transition);
             background: var(--primary);
             color: white;
-            box-shadow: 0 10px 25px rgba(var(--primary-rgb), 0.25);
-            margin-top: 1rem;
+            margin-top: 0.5rem;
         }
 
         .btn:hover {
-            background: #059669;
-            /* Emerald-600 */
-            transform: translateY(-2px);
-            box-shadow: 0 15px 35px rgba(var(--primary-rgb), 0.35);
+            background: #4338ca;
+            /* Indigo 700 */
         }
 
         .error-message {
-            color: #e11d48;
-            font-size: 0.85rem;
-            margin-top: 1.5rem;
+            color: #ef4444;
+            font-size: 0.8rem;
+            margin-top: 1rem;
             font-weight: 600;
             display: none;
-            padding: 0.8rem;
-            background: #fff1f2;
-            border-radius: 12px;
-            border: 1px solid #fecdd3;
+            padding: 0.75rem;
+            background: #fef2f2;
+            border-radius: 8px;
+            border: 1px solid #fee2e2;
         }
     </style>
 </head>

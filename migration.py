@@ -51,46 +51,58 @@ def get_base_uri(uri):
 def run_command(command, log_callback, redact_patterns=None):
     """Executes a command and streams output to log_callback with redaction."""
     # Debug: Log the command (redacted)
-    cmd_str = " ".join(command)
+    debug_cmd = " ".join(command)
     if redact_patterns:
         for p in redact_patterns:
-            cmd_str = cmd_str.replace(p, "******")
+            if p: debug_cmd = debug_cmd.replace(p, "******")
     
-    process = subprocess.Popen(
-        command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        bufsize=1,
-        universal_newlines=True
-    )
+    log_callback(f"DEBUG: Executing internal command: {debug_cmd}")
     
-    current_phase = None
-    for line in process.stdout:
-        output = line.strip()
-        if output:
-            # Enhanced log parsing for progress visualization
-            if "writing metadata" in output.lower() or "restoring metadata" in output.lower():
-                if current_phase != "METADATA":
-                    log_callback("PHASE:METADATA|Synchronizing System Metadata...")
-                    current_phase = "METADATA"
-            elif "restoring" in output.lower() and "collection" in output.lower():
-                if current_phase != "DATA":
-                    log_callback("PHASE:DATA|Transferring Collection Data...")
-                    current_phase = "DATA"
-            elif "index" in output.lower() and ("creating" in output.lower() or "building" in output.lower()):
-                if current_phase != "INDEX":
-                    log_callback("PHASE:INDEX|Rebuilding Database Indexes...")
-                    current_phase = "INDEX"
-
-            if redact_patterns:
-                for pattern in redact_patterns:
-                    output = output.replace(pattern, "******")
-            log_callback(output)
+    try:
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            universal_newlines=True
+        )
         
-    process.wait()
-    if process.returncode != 0:
-        raise Exception(f"Command failed with exit code {process.returncode}")
+        current_phase = None
+        for line in process.stdout:
+            output = line.strip()
+            if output:
+                # Enhanced log parsing for progress visualization
+                lower_out = output.lower()
+                if "writing metadata" in lower_out or "restoring metadata" in lower_out:
+                    if current_phase != "METADATA":
+                        log_callback("PHASE:METADATA|Synchronizing System Metadata...")
+                        current_phase = "METADATA"
+                elif "restoring" in lower_out and "collection" in lower_out:
+                    if current_phase != "DATA":
+                        log_callback("PHASE:DATA|Transferring Collection Data...")
+                        current_phase = "DATA"
+                elif "index" in lower_out and ("creating" in lower_out or "building" in lower_out):
+                    if current_phase != "INDEX":
+                        log_callback("PHASE:INDEX|Rebuilding Database Indexes...")
+                        current_phase = "INDEX"
+
+                if redact_patterns:
+                    for pattern in redact_patterns:
+                        if pattern: output = output.replace(pattern, "******")
+                log_callback(output)
+            
+        process.wait()
+        if process.returncode != 0:
+            log_callback(f"ERROR: Command exited with code {process.returncode}")
+            raise Exception(f"Process failed (Exit code: {process.returncode})")
+    except FileNotFoundError:
+        error_msg = f"ERROR: MongoDB tool '{command[0]}' not found in system path."
+        log_callback(error_msg)
+        raise Exception(error_msg)
+    except Exception as e:
+        log_callback(f"ERROR: Command execution failed: {str(e)}")
+        raise e
 
 def migrate_db(source, target, log_callback, target_dbs=None):
     """Performs full or selective MongoDB instance migration."""

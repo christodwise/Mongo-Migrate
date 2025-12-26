@@ -53,7 +53,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
 
         body {
@@ -244,16 +244,16 @@
         .card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
-            border-radius: var(--border-radius);
-            padding: 2rem;
-            box-shadow: var(--shadow-md);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
             display: flex;
             flex-direction: column;
             transition: var(--transition);
         }
 
         .card:hover {
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow-md);
         }
 
         .card-header {
@@ -264,16 +264,16 @@
         }
 
         .card-title {
-            font-size: 1.1rem;
-            font-weight: 800;
+            font-size: 0.95rem;
+            font-weight: 700;
             color: #1e293b;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.01em;
         }
 
         .card-subtitle {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-dim);
-            margin-top: 4px;
+            margin-top: 2px;
             font-weight: 500;
         }
 
@@ -526,10 +526,10 @@
             gap: 1rem;
             background: #ffffff;
             padding: 1.5rem;
-            border-radius: 20px;
+            border-radius: 12px;
             border: 1px solid var(--card-border);
             transition: var(--transition);
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-sm);
             position: relative;
             overflow: hidden;
         }
@@ -631,10 +631,10 @@
         }
 
         .stat-value {
-            font-weight: 800;
+            font-weight: 700;
             color: var(--text);
-            font-size: 1.2rem;
-            letter-spacing: -0.5px;
+            font-size: 1.1rem;
+            letter-spacing: -0.01em;
         }
 
         /* Modal Overlays */
@@ -695,14 +695,14 @@
         .db-selection-card {
             background: #ffffff;
             border: 1px solid var(--card-border);
-            border-radius: 20px;
+            border-radius: 12px;
             padding: 1.5rem;
             margin-top: 0.5rem;
             display: none;
             /* Hidden by default */
             flex-direction: column;
             gap: 1rem;
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-sm);
             border-left: 4px solid #8b5cf6;
             /* Violet accent */
         }
@@ -1098,19 +1098,23 @@
             }
         }
 
-        function handleSelect(type) {
+        async function handleSelect(type) {
             const select = document.getElementById(`${type}Select`);
             const conn = rawConnections.find(c => c.id == select.value);
+            if (!conn) return;
+
             if (type === 'source') {
                 selectedSource = conn;
                 document.getElementById('sourceStats').style.display = 'grid';
+                // Robustly call fetchDatabases when source changes
+                fetchDatabases(conn.uri);
             } else {
                 selectedTarget = conn;
                 document.getElementById('targetStats').style.display = 'grid';
                 document.getElementById('targetEnv').textContent = conn.environment || '--';
             }
 
-            updateStats();
+            await updateStats();
             validateInputs();
         }
 
@@ -1156,14 +1160,33 @@
             // Logic to handle individual selections if needed
         }
 
-        // Hook into updateStats to fetch DBs
-        const originalUpdateStats = updateStats;
-        window.updateStats = async function () {
-            await originalUpdateStats();
-            if (selectedSource) {
-                fetchDatabases(selectedSource.uri);
+        async function updateStats() {
+            if (!selectedSource) return;
+
+            const val1 = document.getElementById('sourceStatVal1');
+            const val2 = document.getElementById('sourceStatVal2');
+
+            try {
+                const res = await fetch('/api/db-stats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uri: selectedSource.uri })
+                });
+
+                if (!res.ok) throw new Error("Stats request failed");
+                const data = await res.json();
+
+                if (data.success) {
+                    val1.textContent = data.stats.dbCount || 0;
+                    val2.textContent = (data.stats.collections || 0).toLocaleString();
+                } else {
+                    val1.textContent = "!"; val2.textContent = "OFFLINE";
+                }
+            } catch (e) {
+                console.warn("Stats fetch error:", e);
+                val1.textContent = "-"; val2.textContent = "ERR";
             }
-        };
+        }
 
         function validateInputs() {
             document.getElementById('preStartBtn').disabled = !(selectedSource && selectedTarget);
