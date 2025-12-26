@@ -48,6 +48,22 @@ def get_base_uri(uri):
             pass
         return uri
 
+def get_tool_version(tool_name):
+    """Detects the version of a MongoDB tool."""
+    try:
+        result = subprocess.run([tool_name, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=5)
+        if result.returncode == 0:
+            # Typical output: "mongodump version: r100.14.0" or "mongodump version: 4.4.1"
+            line = result.stdout.splitlines()[0]
+            parts = line.split()
+            for part in parts:
+                if any(c.isdigit() for c in part):
+                    version_str = part.lstrip('r')
+                    return version_str
+        return "Unknown"
+    except Exception:
+        return "Unknown"
+
 def run_command(command, log_callback, redact_patterns=None):
     """Executes a command and streams output to log_callback with redaction."""
     # Debug: Log the command (redacted)
@@ -129,17 +145,45 @@ def migrate_db(source, target, log_callback, target_dbs=None):
         concurrency = max(4, min(cores, 16))
         log_callback(f"Engine tuning: Utilizing {concurrency} parallel streams.")
 
-        # Phase 1: Full Instance Dump
+        # Detect tool version to handle compatibility
+        dump_version = get_tool_version("mongodump")
+        log_callback(f"Detected mongodump version: {dump_version}")
+        
+        is_legacy = False
+        try:
+            # nsInclude was introduced in v100.0.0
+            major_v = int(dump_version.split('.')[0])
+            if major_v < 100:
+                is_legacy = True
+        except:
+            # If version format is unknown, assume legacy to be safe with flags
+            is_legacy = True
+
+        # Phase 1: Instance Dump
         if target_dbs:
             log_callback(f"PHASE:DUMPING|Capturing Selected Databases: {', '.join(target_dbs)}...")
-            dump_cmd = [
-                "mongodump", 
-                "--uri", source_uri, 
-                "--out", temp_dir,
-                "--numParallelCollections", str(concurrency)
-            ]
-            for db in target_dbs:
-                dump_cmd.append(f"--nsInclude={db}.*")
+            
+            if is_legacy:
+                log_callback("Legacy tools detected. Using sequential --db fallback.")
+                for db in target_dbs:
+                    dump_cmd = [
+                        "mongodump",
+                        "--uri", source_uri,
+                        "--db", db,
+                        "--out", temp_dir,
+                        "--numParallelCollections", str(concurrency)
+                    ]
+                    run_command(dump_cmd, log_callback, redact_patterns)
+            else:
+                dump_cmd = [
+                    "mongodump", 
+                    "--uri", source_uri, 
+                    "--out", temp_dir,
+                    "--numParallelCollections", str(concurrency)
+                ]
+                for db in target_dbs:
+                    dump_cmd.append(f"--nsInclude={db}.*")
+                run_command(dump_cmd, log_callback, redact_patterns)
         else:
             log_callback("PHASE:DUMPING|Capturing Full Instance (Parallel Mode)...")
             dump_cmd = [
@@ -148,8 +192,7 @@ def migrate_db(source, target, log_callback, target_dbs=None):
                 "--out", temp_dir,
                 "--numParallelCollections", str(concurrency)
             ]
-        
-        run_command(dump_cmd, log_callback, redact_patterns)
+            run_command(dump_cmd, log_callback, redact_patterns)
         
         # Phase 2: Full Instance Restore
         log_callback("PHASE:RESTORING|Injecting Instance to Destination (High-Throughput)...")
