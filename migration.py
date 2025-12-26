@@ -159,7 +159,6 @@ def migrate_db(source, target, log_callback, target_dbs=None):
             "--drop",
             "--numParallelCollections", str(concurrency),
             "--numInsertionWorkersPerCollection", str(concurrency),
-            "--maintainInsertionOrder=false",
             temp_dir
         ]
         # While mongorestore generally restores what's in the dir, 
