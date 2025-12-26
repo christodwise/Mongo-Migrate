@@ -1304,17 +1304,43 @@
 
         async function saveConnection(e) {
             e.preventDefault();
-            const data = {
-                name: document.getElementById('connName').value,
-                environment: document.getElementById('connEnv').value,
-                uri: document.getElementById('connUri').value,
-                dbname: document.getElementById('connDb').value
-            };
-            const res = await fetch('/api/connections', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
-            });
-            const result = await res.json();
-            if (result.success) { fetchConnections(); closeModal('connectionModal'); document.getElementById('connectionForm').reset(); }
+            const btn = e.submitter || e.target.querySelector('button[type="submit"]');
+            const originalText = btn.textContent;
+
+            try {
+                btn.disabled = true;
+                btn.textContent = "Registering...";
+
+                const data = {
+                    name: document.getElementById('connName').value,
+                    environment: document.getElementById('connEnv').value,
+                    uri: document.getElementById('connUri').value,
+                    dbname: document.getElementById('connDb').value
+                };
+
+                const res = await fetch('/api/connections', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (!res.ok) throw new Error("Server rejected request");
+
+                const result = await res.json();
+                if (result.success) {
+                    await fetchConnections();
+                    closeModal('connectionModal');
+                    document.getElementById('connectionForm').reset();
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (error) {
+                console.error("Save failed:", error);
+                alert("Failed to save connection: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
         }
 
         async function deleteConnection(e, id) {
