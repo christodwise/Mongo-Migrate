@@ -9,6 +9,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 DB_FILE = os.path.join(DATA_DIR, 'connections.db')
 
 def init_db():
+    print(f" * Storage: Initializing database at {DB_FILE}")
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     
