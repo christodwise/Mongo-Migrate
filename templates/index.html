@@ -215,22 +215,27 @@
         /* Layout Grid - Optimized for Side-by-Side */
         .studio-grid {
             display: grid;
-            grid-template-columns: 420px 1fr;
-            grid-template-rows: 1fr;
+            grid-template-columns: 1fr 400px;
+            /* Logs on the right, Config on the left */
             gap: 1.5rem;
             flex-grow: 1;
             min-height: 0;
             overflow: hidden;
-            align-items: stretch;
         }
 
         .migration-config {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1.25rem;
             min-height: 0;
             overflow-y: auto;
-            padding-right: 10px;
+            padding-right: 4px;
+        }
+
+        .config-nodes-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
         }
 
         .live-logs {
@@ -805,71 +810,76 @@
 
             <div class="studio-grid">
                 <section class="migration-config">
-                    <!-- Source Card -->
-                    <div class="context-card source">
-                        <div class="selector-header">
-                            <div class="selector-icon source">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2.5">
-                                    <path
-                                        d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
-                                    </path>
-                                </svg>
+                    <!-- Node Context Grid -->
+                    <div class="config-nodes-grid">
+                        <!-- Source Card -->
+                        <div class="context-card source">
+                            <div class="selector-header">
+                                <div class="selector-icon source">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.5">
+                                        <path
+                                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <div class="selector-info">
+                                    <label>Origin</label>
+                                    <h3 style="font-size: 1rem;">Source Node</h3>
+                                </div>
                             </div>
-                            <div class="selector-info">
-                                <label>Origin</label>
-                                <h3>Source Node</h3>
+
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <select id="sourceSelect" onchange="handleSelect('source')"
+                                    style="padding: 0.6rem 0.8rem; font-size: 0.85rem;">
+                                    <option value="" disabled selected>Connect to source...</option>
+                                </select>
+                            </div>
+
+                            <div id="sourceStats" class="stat-grid" style="display: none; margin-top: 1rem;">
+                                <div class="stat-box source-stat" style="padding: 8px;">
+                                    <span class="stat-label">Total DBs</span>
+                                    <span class="stat-value" id="sourceStatVal1" style="font-size: 1rem;">--</span>
+                                </div>
+                                <div class="stat-box source-stat" style="padding: 8px;">
+                                    <span class="stat-label">Collections</span>
+                                    <span class="stat-value" id="sourceStatVal2" style="font-size: 1rem;">--</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <select id="sourceSelect" onchange="handleSelect('source')">
-                                <option value="" disabled selected>Connect to source...</option>
-                            </select>
-                        </div>
+                        <!-- Destination Card -->
+                        <div class="context-card destination">
+                            <div class="selector-header">
+                                <div class="selector-icon destination">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.5">
+                                        <path d="M3 3h18v18H3zM8 12h8M12 8v8" />
+                                    </svg>
+                                </div>
+                                <div class="selector-info">
+                                    <label>Target</label>
+                                    <h3 style="font-size: 1rem;">Destination Node</h3>
+                                </div>
+                            </div>
 
-                        <div id="sourceStats" class="stat-grid" style="display: none;">
-                            <div class="stat-box source-stat">
-                                <span class="stat-label">Total DBs</span>
-                                <span class="stat-value" id="sourceStatVal1">--</span>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <select id="targetSelect" onchange="handleSelect('target')"
+                                    style="padding: 0.6rem 0.8rem; font-size: 0.85rem;">
+                                    <option value="" disabled selected>Connect to destination...</option>
+                                </select>
                             </div>
-                            <div class="stat-box source-stat">
-                                <span class="stat-label">Total Collections</span>
-                                <span class="stat-value" id="sourceStatVal2">--</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Destination Card -->
-                    <div class="context-card destination">
-                        <div class="selector-header">
-                            <div class="selector-icon destination">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2.5">
-                                    <path d="M3 3h18v18H3zM8 12h8M12 8v8" />
-                                </svg>
-                            </div>
-                            <div class="selector-info">
-                                <label>Target</label>
-                                <h3>Destination Node</h3>
-                            </div>
-                        </div>
-
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <select id="targetSelect" onchange="handleSelect('target')">
-                                <option value="" disabled selected>Connect to destination...</option>
-                            </select>
-                        </div>
-
-                        <div id="targetStats" class="stat-grid" style="display: none;">
-                            <div class="stat-box target-stat">
-                                <span class="stat-label">Ready State</span>
-                                <span class="stat-value" id="targetReady"
-                                    style="color: var(--primary); font-size: 1rem;">VERIFIED</span>
-                            </div>
-                            <div class="stat-box target-stat">
-                                <span class="stat-label">Environment</span>
-                                <span class="stat-value" id="targetEnv" style="font-size: 1rem;">--</span>
+                            <div id="targetStats" class="stat-grid" style="display: none; margin-top: 1rem;">
+                                <div class="stat-box target-stat" style="padding: 8px;">
+                                    <span class="stat-label">State</span>
+                                    <span class="stat-value" id="targetReady"
+                                        style="color: var(--primary); font-size: 0.9rem;">VERIFIED</span>
+                                </div>
+                                <div class="stat-box target-stat" style="padding: 8px;">
+                                    <span class="stat-label">Env</span>
+                                    <span class="stat-value" id="targetEnv" style="font-size: 0.9rem;">--</span>
+                                </div>
                             </div>
                         </div>
                     </div>
