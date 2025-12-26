@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MongoMigrate | Enterprise Data Studio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    <title>MongoMigrate | Enterprise Console</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
     <style>
@@ -1086,9 +1087,9 @@
                             <p>${conn.dbname}</p>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px">
-                            <span class="env-badge">${env[0]}</span>
-                            <span style="color: var(--text-muted); cursor: pointer;" onclick="deleteConnection(event, ${conn.id})">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            <span class="env-badge env-${env[0]}">${env.toUpperCase()}</span>
+                            <span style="color: rgba(255,255,255,0.4); cursor: pointer;" onclick="deleteConnection(event, ${conn.id})">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                             </span>
                         </div>
                     `;
@@ -1157,7 +1158,7 @@
 
         // Hook into updateStats to fetch DBs
         const originalUpdateStats = updateStats;
-        window.updateStats = async function() {
+        window.updateStats = async function () {
             await originalUpdateStats();
             if (selectedSource) {
                 fetchDatabases(selectedSource.uri);
@@ -1171,10 +1172,10 @@
         function openConfirmModal() {
             document.getElementById('confirmSource').textContent = selectedSource.name;
             document.getElementById('confirmTarget').textContent = selectedTarget.name;
-            
+
             const isAll = document.getElementById('migrateAllToggle').checked;
             let modeText = "FULL INSTANCE SYNC";
-            
+
             if (!isAll) {
                 const selected = Array.from(document.querySelectorAll('.db-check:checked')).map(cb => cb.value);
                 if (selected.length > 0) {
@@ -1188,7 +1189,7 @@
             document.getElementById('confirmMode').textContent = modeText;
             document.getElementById('confirmLabelText').innerHTML = "Type <strong style='color: var(--error)'>CONFIRM</strong> to verify:";
             document.getElementById('typeConfirm').placeholder = "CONFIRM";
-            
+
             document.getElementById('typeConfirm').value = '';
             document.getElementById('checkConfirm').checked = false;
             document.getElementById('finalStartBtn').disabled = true;
@@ -1275,8 +1276,8 @@
             const statusEl = document.getElementById('testStatus');
             if (!uri) { alert("Please enter a URI first."); return; }
 
-            statusEl.textContent = "Verifying Link...";
-            statusEl.style.color = "var(--text-muted)";
+            statusEl.textContent = "Verifying...";
+            statusEl.style.color = "var(--text-dim)";
 
             try {
                 const res = await fetch('/api/test-connection', {
@@ -1284,17 +1285,20 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ uri })
                 });
+
+                if (!res.ok) throw new Error("Network Error");
+
                 const data = await res.json();
                 if (data.success) {
                     statusEl.style.color = 'var(--success)';
-                    statusEl.textContent = "L-VERIFIED: " + data.message;
+                    statusEl.textContent = "OK: " + data.message;
                 } else {
                     statusEl.style.color = 'var(--error)';
-                    statusEl.textContent = "L-FAILED: Connection Reject";
+                    statusEl.textContent = "Auth Failed";
                 }
             } catch (e) {
                 statusEl.style.color = 'var(--error)';
-                statusEl.textContent = "L-ERROR: Request Timeout";
+                statusEl.textContent = "Unreachable";
             }
         }
 
