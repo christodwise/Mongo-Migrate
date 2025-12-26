@@ -92,8 +92,8 @@ def run_command(command, log_callback, redact_patterns=None):
     if process.returncode != 0:
         raise Exception(f"Command failed with exit code {process.returncode}")
 
-def migrate_db(source, target, log_callback):
-    """Performs full MongoDB instance migration using a single-pass dump/restore."""
+def migrate_db(source, target, log_callback, target_dbs=None):
+    """Performs full or selective MongoDB instance migration."""
     temp_dir = f"/tmp/migration_{int(time.time())}"
     os.makedirs(temp_dir, exist_ok=True)
     
@@ -118,13 +118,25 @@ def migrate_db(source, target, log_callback):
         log_callback(f"Engine tuning: Utilizing {concurrency} parallel streams.")
 
         # Phase 1: Full Instance Dump
-        log_callback("PHASE:DUMPING|Capturing Full Instance (Parallel Mode)...")
-        dump_cmd = [
-            "mongodump", 
-            "--uri", source_uri, 
-            "--out", temp_dir,
-            "--numParallelCollections", str(concurrency)
-        ]
+        if target_dbs:
+            log_callback(f"PHASE:DUMPING|Capturing Selected Databases: {', '.join(target_dbs)}...")
+            dump_cmd = [
+                "mongodump", 
+                "--uri", source_uri, 
+                "--out", temp_dir,
+                "--numParallelCollections", str(concurrency)
+            ]
+            for db in target_dbs:
+                dump_cmd.append(f"--nsInclude={db}.*")
+        else:
+            log_callback("PHASE:DUMPING|Capturing Full Instance (Parallel Mode)...")
+            dump_cmd = [
+                "mongodump", 
+                "--uri", source_uri, 
+                "--out", temp_dir,
+                "--numParallelCollections", str(concurrency)
+            ]
+        
         run_command(dump_cmd, log_callback, redact_patterns)
         
         # Phase 2: Full Instance Restore
@@ -138,6 +150,12 @@ def migrate_db(source, target, log_callback):
             "--maintainInsertionOrder=false",
             temp_dir
         ]
+        # While mongorestore generally restores what's in the dir, 
+        # specifying nsInclude again can be safer but usually redundant if dump was selective.
+        # However, if we dumped everything (no target_dbs), but want to restore everything, the command is same.
+        # If we dumped specific DBs, the temp_dir only contains those.
+        # So the standard restore command works for both cases.
+        
         run_command(restore_cmd, log_callback, redact_patterns)
         
         log_callback("Full Instance synchronization complete.")
@@ -214,3 +232,13 @@ def preflight_check(source, target):
         checks.append({'status': 'fail', 'msg': f"Target Offline: {t_msg}"})
     
     return checks
+
+def get_databases(uri):
+    """Returns a list of database names from the instance."""
+    try:
+        client = MongoClient(uri)
+        dbs = client.list_database_names()
+        ignore = ['admin', 'config', 'local']
+        return [d for d in dbs if d not in ignore]
+    except Exception as e:
+        raise e

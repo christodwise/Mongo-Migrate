@@ -106,6 +106,16 @@ def preflight():
     checks = migration.preflight_check(data['source'], data['target'])
     return jsonify({'checks': checks})
 
+@app.route('/api/databases', methods=['POST'])
+@login_required
+def get_databases():
+    data = request.json
+    try:
+        dbs = migration.get_databases(data['uri'])
+        return jsonify({'success': True, 'databases': dbs})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
 @socketio.on('start_migration')
 def handle_migration(data):
     migration_id = secrets.token_hex(4)
@@ -118,12 +128,14 @@ def handle_migration(data):
         'status': 'running'
     }
 
+    target_dbs = data.get('databases')
+
     def log_callback(message):
         socketio.emit('migration_log', {'id': migration_id, 'message': message})
 
     def run_migration():
         try:
-            success, message = migration.migrate_db(source, target, log_callback)
+            success, message = migration.migrate_db(source, target, log_callback, target_dbs)
             socketio.emit('migration_complete', {
                 'id': migration_id, 
                 'success': success, 
